@@ -1,5 +1,5 @@
 # iBackep
-iBackep is a simple GUI backup manager for the Apple iPhone and iPad, currently available for Linux, built using [Flet](https://github.com/flet-dev/flet).
+iBackep is a simple GUI backup manager for the Apple iPhone and iPad built using [Flet](https://github.com/flet-dev/flet). It is currently available for Linux. 
 
 Under the hood, the program makes use of [libimobiledevice](https://github.com/libimobiledevice/libimobiledevice) for performing operations.
 
@@ -8,10 +8,15 @@ Under the hood, the program makes use of [libimobiledevice](https://github.com/l
 **Note - This project is still under development**
 
 ### Requirements
-You will need **libimobiledevice** to be installed for the program to work. Run `idevicebackup2 --help` to check if it's already installed on your system.
+You will need the following packages to be installed for the program to work:
+- **libimobiledevice**
+- **libimobiledevice-utils**
 
-### Current Features
+Run `idevicebackup2 --help` to check if it's already installed on your system.
+
+### Features
 - Perform backup and restore operations (Tested on iPhone 5s)
+- Light and Dark themes support
 
 ### Roadmap
 - Better UI
