@@ -38,6 +38,8 @@ class App(ft.UserControl):
 
         #Snackbar (bottom) dialog
         self.no_device_dialog = ft.SnackBar(content=ft.Text("No device found"))
+
+        self.no_folder_selected_dlg = ft.SnackBar(content=ft.Text("Please select a destination folder using the folder icon"))
         
 
         #Banner dialog
@@ -69,12 +71,12 @@ class App(ft.UserControl):
         #Options
         self.backupbtn = ft.ElevatedButton(
             "Backup", icon=ft.icons.SETTINGS_BACKUP_RESTORE_ROUNDED, on_click=self.do_backup,
-            disabled=True
+            disabled=False
         )
 
         self.restorebtn = ft.ElevatedButton(
             "Restore", icon=ft.icons.RESTORE_ROUNDED, on_click=self.do_restore,
-            disabled=True
+            disabled=False
             )
 
 
@@ -90,7 +92,8 @@ class App(ft.UserControl):
         
         self.main_container = ft.Column(
             [self.backup_banner, self.backup_dialog, self.app_name, self.folder_container, 
-            self.options_container, self.restore_dialog, self.no_device_dialog, self.restore_banner], 
+            self.options_container, self.restore_dialog, self.no_device_dialog, self.no_folder_selected_dlg, 
+            self.restore_banner], 
             spacing=35, horizontal_alignment="center"
         )
 
@@ -103,9 +106,6 @@ class App(ft.UserControl):
     def folder_dialog_result(self, e: ft.FilePickerResultEvent):
         
         self.display_folderpath.value = e.path
-
-        self.backupbtn.disabled = False
-        self.restorebtn.disabled = False
 
         self.update()
     
@@ -124,6 +124,15 @@ class App(ft.UserControl):
     #Call backup/restore/cancel actions    
     def do_backup(self, e):
 
+        #check if folder path is specified
+        if(len(self.display_folderpath.value) == 0):
+            
+            self.no_folder_selected_dlg.open = True
+            self.update()
+
+            return
+
+        
         #check for device
         status = scan()
 
@@ -163,6 +172,15 @@ class App(ft.UserControl):
 
     def do_restore(self, e):
         
+        #check if folder path is specified
+        if(len(self.display_folderpath.value) == 0):
+            
+            self.no_folder_selected_dlg.open = True
+            self.update()
+
+            return
+        
+
         #check for device
         status = scan()
 
