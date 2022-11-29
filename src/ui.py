@@ -88,11 +88,21 @@ class App(ft.UserControl):
         self.options_container = ft.Row(
             [self.backupbtn, self.restorebtn], spacing=50, alignment="center")
         
-        self.main_container = ft.Column(
-            [self.backup_banner, self.backup_dialog, self.app_name, self.folder_container, 
-            self.options_container, self.restore_dialog, self.no_device_dialog, 
-            self.no_folder_selected_dlg, self.restore_banner], 
-            spacing=35, horizontal_alignment="center"
+        
+        #Main Container
+        self.main_container = ft.Stack(
+            [
+                #Alerts and dialogs go here
+                self.backup_banner, self.backup_dialog, self.restore_dialog, 
+                self.no_device_dialog, self.no_folder_selected_dlg, self.restore_banner,
+
+                #Others
+                ft.Column(
+                    [self.app_name, self.folder_container, 
+                    self.options_container], 
+                    spacing=35, horizontal_alignment="center"
+                )
+            ]
         )
 
         
