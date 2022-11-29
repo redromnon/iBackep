@@ -1,7 +1,7 @@
 import flet as ft
 from ui import App
 
-version = ""
+version = "v0.2.0"
 
 def main(page: ft.Page):
 
