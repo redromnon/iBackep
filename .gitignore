@@ -3,3 +3,4 @@
 /src/build
 /src/dist
 /src/*.spec
+/venv

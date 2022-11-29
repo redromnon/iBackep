@@ -44,12 +44,10 @@ class App(ft.UserControl):
 
         #Banner dialog
         self.backup_banner = ft.Banner(
-            leading=ft.Icon(ft.icons.DONE_ROUNDED),
             actions=[ft.TextButton("Ok", on_click=self.close_banner)]
         )
         
         self.restore_banner = ft.Banner(
-            leading=ft.Icon(ft.icons.DONE_ROUNDED),
             actions=[ft.TextButton("Ok", on_click=self.close_banner)]
         )
 
@@ -92,8 +90,8 @@ class App(ft.UserControl):
         
         self.main_container = ft.Column(
             [self.backup_banner, self.backup_dialog, self.app_name, self.folder_container, 
-            self.options_container, self.restore_dialog, self.no_device_dialog, self.no_folder_selected_dlg, 
-            self.restore_banner], 
+            self.options_container, self.restore_dialog, self.no_device_dialog, 
+            self.no_folder_selected_dlg, self.restore_banner], 
             spacing=35, horizontal_alignment="center"
         )
 
@@ -133,10 +131,10 @@ class App(ft.UserControl):
             return
 
         
-        #check for device
-        status = scan()
+        #check if lib is installed & device is connected
+        lib_installed, status = scan()
 
-        if status:
+        if lib_installed and status:
             print("Device found!")
 
             #Display backup alert progress dialog
@@ -165,8 +163,14 @@ class App(ft.UserControl):
 
                 print("Something went wrong")
 
-        else:
+        elif lib_installed and not status:
             self.no_device_dialog.open = True
+            self.update()
+
+        else:
+            self.backup_banner.content = ft.Text("Looks like libimobiledevice or libimobiledevice-utils is not installed")
+            self.backup_banner.open = True
+
             self.update()
 
 
@@ -181,10 +185,10 @@ class App(ft.UserControl):
             return
         
 
-        #check for device
-        status = scan()
+        #check if lib is installed & device is connected
+        lib_installed, status = scan()
 
-        if status:
+        if lib_installed and status:
             print("Device found!")
 
             #Display backup alert progress dialog
@@ -214,9 +218,15 @@ class App(ft.UserControl):
                 print("Something went wrong")
 
                 self.update()
-        else:
+        elif lib_installed and not status:
             self.no_device_dialog.open = True
             self.update()
+
+        else:
+            self.backup_banner.content = ft.Text("Looks like libimobiledevice or libimobiledevice-utils is not installed")
+            self.backup_banner.open = True
+
+            self.update()        
 
 
     def cancel_op(self, e):
