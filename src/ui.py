@@ -10,10 +10,6 @@ class App(ft.UserControl):
         self.action = Action()
         
 
-        #App title
-        self.app_name = ft.Text("iBackep", size=56, style="titleLarge")
-
-
         #Action (pop-up) dialogs
         self.backup_dialog = ft.AlertDialog(
             title=ft.Text("Backing Up Device", text_align="center"), 
@@ -98,8 +94,7 @@ class App(ft.UserControl):
 
                 #Others
                 ft.Column(
-                    [self.app_name, self.folder_container, 
-                    self.options_container], 
+                    [self.folder_container, self.options_container], 
                     spacing=35, horizontal_alignment="center"
                 )
             ]
