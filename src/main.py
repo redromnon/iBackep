@@ -1,5 +1,5 @@
 import flet as ft
-from ui import App
+from ui.app import App
 
 version = "v0.2.0"
 
