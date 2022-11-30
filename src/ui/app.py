@@ -1,11 +1,15 @@
 import flet as ft
 from libutilities import scan, Action
+from ui.about import About
 
 class App(ft.UserControl): 
     
     #Must func
     def build(self):
     
+        #Import about dialog
+        self.about_button = About()
+        
         #Action (operations - backup, restore and cancel) obj to used later
         self.action = Action()
         
@@ -17,7 +21,7 @@ class App(ft.UserControl):
                 [ft.Text("This will take some time"), ft.ProgressRing()],
                 height=50, horizontal_alignment="center"
             ),
-            actions=[ft.TextButton("Cancel", on_click=self.cancel_op)],
+            actions=[ft.TextButton(ft.Text("Cancel", text_align="center"), on_click=self.cancel_op)],
             content_padding=40, modal=True
         )
 
@@ -27,7 +31,7 @@ class App(ft.UserControl):
                 [ft.Text("This will take some time"), ft.ProgressRing()],
                 height=50, horizontal_alignment="center"
             ),
-            actions=[ft.TextButton("Cancel", on_click=self.cancel_op)],
+            actions=[ft.TextButton(ft.Text("Cancel", text_align="center"), on_click=self.cancel_op)],
             content_padding=40, modal=True
         )
 
@@ -94,7 +98,7 @@ class App(ft.UserControl):
 
                 #Others
                 ft.Column(
-                    [self.folder_container, self.options_container], 
+                    [self.folder_container, self.options_container, self.about_button], 
                     spacing=35, horizontal_alignment="center"
                 )
             ]
