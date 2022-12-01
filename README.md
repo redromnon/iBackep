@@ -12,7 +12,18 @@ You will need the following packages to be installed for the program to work:
 - **libimobiledevice**
 - **libimobiledevice-utils**
 
-Run `idevicebackup2 --help` to check if it's already installed on your system.
+Run `idevicebackup2 -v` to check if it's already installed on your system. 
+
+If it isn't, you can use the following commands to install the packages on your system.
+
+#### Debian and Ubuntu-based distributions
+`sudo apt-get install libimobiledevice6 libimobiledevice-utils`
+
+#### Fedora
+`sudo dnf install libimobiledevice libimobiledevice-utils`
+
+#### Arch Linux-based distributions
+`pacman -S libimobiledevice`
 
 ### Features
 - Perform backup and restore operations (Tested on iPhone 5s)
