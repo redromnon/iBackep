@@ -27,11 +27,11 @@ If it isn't, you can use the following commands to install the packages on your 
 
 ### Features
 - Perform backup and restore operations (Tested on iPhone 5s)
+- Encrypt backups
 - Light and Dark themes support
 
 ### Roadmap
 - Better UI
-- Support for encrypted backups
 - Display information about previous backups
 - Support for customized backup and restore operations
 - Windows and macOS support
