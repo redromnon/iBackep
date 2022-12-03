@@ -32,16 +32,33 @@ class Action:
 
     process = None
 
-    def backup(self, folder):
+    def backup(self, folder, password):
 
-        self.process = subprocess.Popen(["idevicebackup2", "backup", folder])
+        #Enable encryption if password is given
+        if password is None:
+            
+            self.process = subprocess.Popen(["idevicebackup2", "backup", folder])
+        
+        else:
+            
+            print("Checking encryption...")
+            self.encrypt_process = subprocess.Popen(["idevicebackup2", "encryption", "on", password, folder])
+            self.process = subprocess.Popen(["idevicebackup2", "backup", folder])
 
         while(self.process.poll() == None):
             pass
 
-    def restore(self, folder):
+    def restore(self, folder, password):
         
-        self.process = subprocess.Popen(["idevicebackup2", "restore", folder])
+        if password is None:
+            
+            self.process = subprocess.Popen(["idevicebackup2", "restore", folder])
+        
+        else:
+
+            print("Restoring encrypted backup...")
+            self.process = subprocess.Popen(["idevicebackup2", "restore", "--password", password, folder])
+
 
         while(self.process.poll() == None):
             pass

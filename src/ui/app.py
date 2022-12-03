@@ -1,6 +1,7 @@
 import flet as ft
 from libutilities import scan, Action
 from ui.about import About
+from ui.encrypt import Encrypt
 
 class App(ft.UserControl): 
     
@@ -9,6 +10,9 @@ class App(ft.UserControl):
     
         #Import about dialog
         self.about_button = About()
+
+        #Import encryption password container row
+        self.pwd_encrypt = Encrypt()
         
         #Action (operations - backup, restore and cancel) obj to used later
         self.action = Action()
@@ -21,7 +25,7 @@ class App(ft.UserControl):
                 [ft.Text("This will take some time"), ft.ProgressRing()],
                 height=50, horizontal_alignment="center"
             ),
-            actions=[ft.TextButton(ft.Text("Cancel", text_align="center"), on_click=self.cancel_op)],
+            actions=[ft.TextButton("Cancel", on_click=self.cancel_op)],
             content_padding=40, modal=True
         )
 
@@ -31,7 +35,7 @@ class App(ft.UserControl):
                 [ft.Text("This will take some time"), ft.ProgressRing()],
                 height=50, horizontal_alignment="center"
             ),
-            actions=[ft.TextButton(ft.Text("Cancel", text_align="center"), on_click=self.cancel_op)],
+            actions=[ft.TextButton("Cancel", on_click=self.cancel_op)],
             content_padding=40, modal=True
         )
 
@@ -98,8 +102,9 @@ class App(ft.UserControl):
 
                 #Others
                 ft.Column(
-                    [self.folder_container, self.options_container, self.about_button], 
-                    spacing=35, horizontal_alignment="center"
+                    [self.folder_container, self.pwd_encrypt, self.options_container, 
+                    self.about_button], 
+                    spacing=30, horizontal_alignment="center"
                 )
             ]
         )
@@ -152,7 +157,8 @@ class App(ft.UserControl):
 
             #Run backup operation
             print("Backup running...")
-            self.action.backup(self.display_folderpath.value)
+            pwd = self.pwd_encrypt.get_pwd()#Check if password is given
+            self.action.backup(self.display_folderpath.value, pwd)
 
             #Successfully executed with return code as 0
             if self.action.process.poll() == 0:
@@ -206,7 +212,8 @@ class App(ft.UserControl):
 
             #Run restore operation
             print("Restore running...")
-            self.action.restore(self.display_folderpath.value)
+            pwd = self.pwd_encrypt.get_pwd()#Check if password is given
+            self.action.restore(self.display_folderpath.value, pwd)
 
             #Successfully executed with return code as 0
             if self.action.process.poll() == 0:
