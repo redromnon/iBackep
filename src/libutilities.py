@@ -37,13 +37,13 @@ class Action:
         #Enable encryption if password is given
         if password is None:
             
-            self.process = subprocess.Popen(["idevicebackup2", "backup", folder])
+            self.process = subprocess.Popen(["idevicebackup2", "backup", folder], stdout=subprocess.PIPE)
         
         else:
             
             print("Checking encryption...")
             self.encrypt_process = subprocess.Popen(["idevicebackup2", "encryption", "on", password, folder])
-            self.process = subprocess.Popen(["idevicebackup2", "backup", folder])
+            self.process = subprocess.Popen(["idevicebackup2", "backup", folder], stdout=subprocess.PIPE)
 
         while(self.process.poll() == None):
             pass
@@ -52,12 +52,12 @@ class Action:
         
         if password is None:
             
-            self.process = subprocess.Popen(["idevicebackup2", "restore", folder])
+            self.process = subprocess.Popen(["idevicebackup2", "restore", folder], stdout=subprocess.PIPE)
         
         else:
 
             print("Restoring encrypted backup...")
-            self.process = subprocess.Popen(["idevicebackup2", "restore", "--password", password, folder])
+            self.process = subprocess.Popen(["idevicebackup2", "restore", "--password", password, folder], stdout=subprocess.PIPE)
 
 
         while(self.process.poll() == None):
