@@ -1,11 +1,14 @@
+<img alt="GitHub" src="https://img.shields.io/github/license/redromnon/ibackep?style=flat-square"> <img alt="GitHub release (latest SemVer including pre-releases)" src="https://img.shields.io/github/v/release/redromnon/ibackep?include_prereleases&style=flat-square"> 
+
+<a href="https://www.buymeacoffee.com/redromnon" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="40" width="160"></a>
+
 # iBackep
-iBackep is a simple GUI backup manager for the Apple iPhone and iPad built using [Flet](https://github.com/flet-dev/flet). It is currently available for Linux. 
+iBackep is a simple and lightweight GUI backup manager for the Apple iPhone and iPad built using [Flet](https://github.com/flet-dev/flet). It is currently available for Linux. 
 
 Under the hood, the program makes use of [libimobiledevice](https://github.com/libimobiledevice/libimobiledevice) for performing operations.
 
-![iBackepv0 3 0](https://user-images.githubusercontent.com/74495920/205428592-d1a1158f-0904-499e-8f7c-b722f678863e.png)
+![Screenshot from 2022-12-11 20-29-12](https://user-images.githubusercontent.com/74495920/206911097-a1cb58af-e7f3-4a21-8a7a-fc2afe16ee78.png)
 
-**Note - This project is still under development**
 
 ### Requirements
 You will need the following packages to be installed for the program to work:
@@ -28,7 +31,7 @@ If it isn't, you can use the following commands to install the packages on your 
 ### Features
 - Perform backup and restore operations (Tested on iPhone 5s)
 - Encrypt backups
-- Light and Dark themes support
+- Light and Dark themes support (Depending on the system theme)
 
 ### Roadmap
 - Better UI
