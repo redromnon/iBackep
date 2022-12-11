@@ -44,7 +44,8 @@ class App(ft.UserControl):
         self.lib_output = ft.TextField(max_lines=5, height=200, filled=True, read_only=True)
         self.result_dialog = ft.AlertDialog(
             content=ft.Column(
-                [self.lib_output, ft.Text("Click anywhere outside the dialog to close", text_align="center", size=16)],
+                [self.lib_output, ft.Text("Click anywhere outside the dialog to close", text_align="center", 
+                size=16, style="bodySmall")],
                 height=200, width=400, horizontal_alignment="center"
             ), content_padding=40
         )

@@ -10,7 +10,7 @@ class Encrypt(ft.UserControl):
         )
 
         self.password_field = ft.TextField(
-            password=True, can_reveal_password=True, disabled=True, width=250, height=40, 
+            password=True, can_reveal_password=True, disabled=True, width=275, height=40, 
             content_padding=ft.padding.only(bottom=15, left=10), hint_text="Encryption password"
         )
 

@@ -1,13 +1,19 @@
 import flet as ft
 import webbrowser as wb
 
+version = None
+def get_version(v):
+    global version
+    version = v
+
 class About(ft.UserControl):
 
     def build(self):
+
+        global version
     
-        self.desc = (
-            "iBackep is a lightweight GUI backup manager for Apple iPhone and iPad for Linux\n" + "(GPL-3.0 License)\n\n"
-            "Made with ❤️ by redromnon"
+        self.desc = ( version + "\n\niBackep is a lightweight GUI backup manager for Apple iPhone and iPad for Linux\n" + 
+            "(GPL-3.0 License)\n\nMade with ❤️ by redromnon"
         )
         
         
@@ -19,7 +25,7 @@ class About(ft.UserControl):
                                 [
                                     ft.Text(self.desc, text_align="center", style="bodySmall", size=14),
                                     ft.TextButton("Website", on_click=lambda e: wb.open("https://github.com/redromnon/iBackep"))
-                                ], horizontal_alignment="center", height=100
+                                ], horizontal_alignment="center", height=120
                             )
                         )
 
