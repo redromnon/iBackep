@@ -26,9 +26,9 @@ class Encrypt(ft.UserControl):
                             "When performing a BACKUP, you need to set a password and encrypt it for the first time only." +
                             " There's no need to insert the password every time once it's already encrypted.\n\n" +
                             "When performing a RESTORE however, you will need to insert the password every single time.",
-                            text_align="center", style="bodySmall"),
+                            text_align="center", style="bodySmall", size=14),
                 ],
-                horizontal_alignment="center", height=120, width=500
+                horizontal_alignment="center", height=150, width=500
             ),
             actions=[ft.TextButton("Ok", on_click=self.toggle_help)], modal=True 
         )
