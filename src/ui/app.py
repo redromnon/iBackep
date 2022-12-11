@@ -77,7 +77,7 @@ class App(ft.UserControl):
         self.folder_picker = ft.FilePicker(on_result=self.folder_dialog_result)
         
         self.display_folderpath = ft.TextField(
-            hint_text="Select folder icon", width=400, read_only=False, border="none", 
+            hint_text="Select folder icon", width=400, read_only=True, border="none", 
             filled=True, max_lines=3
         )
 
