@@ -7,7 +7,7 @@ class Operation(ft.UserControl):
         
         self.action = Action()
         
-        self.lib_output = ft.TextField(value="", filled=True, read_only=True, multiline=True, text_size=13)
+        self.lib_output = ft.TextField(value="", filled=True, read_only=True, multiline=True, text_size=13, color=ft.colors.AMBER)
         
         self.close_button = ft.TextButton("Close", disabled=True, on_click=self.close_dialog)
         self.cancel_button = ft.TextButton("Cancel", disabled=False, on_click=self.cancel_op)
@@ -21,10 +21,10 @@ class Operation(ft.UserControl):
                     ft.Column(
                         [self.lib_output], 
                         horizontal_alignment="center", expand=True, auto_scroll=True, scroll="auto",
-                        width=300, height=300
+                        width=400
                     ),
-                ]
-            ), 
+                ], width=400
+            ),
             content_padding=30, modal=True,
             actions=[self.close_button, self.cancel_button]
         )
@@ -35,6 +35,7 @@ class Operation(ft.UserControl):
 
         self.result_dialog.open = True
         self.result_dialog.title = ft.Text("Backing Up", text_align="center")
+        self.lib_output.value = "...\n"
         self.update()
 
         process = self.action.backup(folder, pwd)
@@ -56,12 +57,13 @@ class Operation(ft.UserControl):
 
         self.result_dialog.open = True
         self.result_dialog.title = ft.Text("Restoring", text_align="center")
+        self.lib_output.value = "...\n"
         self.update()
 
         process = self.action.restore(folder, pwd)
 
         for line in process.stdout:
-            print(line)
+            print(line, end="")
             self.lib_output.value += line
             self.update()
 

@@ -37,7 +37,7 @@ class App(ft.UserControl):
         
         self.display_folderpath = ft.TextField(
             hint_text="Select folder icon", width=400, read_only=True, border="none", 
-            filled=True, max_lines=3
+            filled=True, max_lines=3, color="#a6a6a6"
         )
 
         self.select_folder_icon = ft.IconButton(
@@ -100,11 +100,7 @@ class App(ft.UserControl):
     #Close action finished banner
     def close_banner(self, e):
         
-        if(self.backup_cancel_banner.open):
-            self.backup_cancel_banner.open = False
-        elif(self.restore_cancel_banner.open):
-            self.restore_cancel_banner.open = False
-        elif(self.lib_not_installed_banner.open):
+        if(self.lib_not_installed_banner.open):
             self.lib_not_installed_banner.open = False
 
         self.update()
