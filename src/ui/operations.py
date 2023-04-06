@@ -1,4 +1,4 @@
-import flet as ft
+import flet as ft, time
 from libutilities import Action
 
 class Operation(ft.UserControl):
@@ -21,9 +21,9 @@ class Operation(ft.UserControl):
                     ft.Column(
                         [self.lib_output], 
                         horizontal_alignment="center", expand=True, auto_scroll=True, scroll="auto",
-                        width=400
+                        width=600
                     ),
-                ], width=400
+                ], width=600
             ),
             content_padding=30, modal=True,
             actions=[self.close_button, self.cancel_button]
@@ -35,17 +35,23 @@ class Operation(ft.UserControl):
 
         self.result_dialog.open = True
         self.result_dialog.title = ft.Text("Backing Up", text_align="center")
-        self.lib_output.value = "...\n"
+        self.lib_output.value = "Running backup...\n"
         self.update()
 
         process = self.action.backup(folder, pwd)
+       
+        while True:
 
-        for line in process.stdout:
-            print(line, end="")
+            #Benefits smoother scrolling of lib_output texfield
+            time.sleep(0.5)
+            line = process.stdout.readline().decode()
+
+            print(line, end='')        
             self.lib_output.value += line
             self.update()
 
-        process.wait()
+            if process.poll() is not None and line == '':
+                break
 
         self.close_button.disabled = False
         self.cancel_button.disabled = True
@@ -57,17 +63,23 @@ class Operation(ft.UserControl):
 
         self.result_dialog.open = True
         self.result_dialog.title = ft.Text("Restoring", text_align="center")
-        self.lib_output.value = "...\n"
+        self.lib_output.value = "Running restore...\n"
         self.update()
 
         process = self.action.restore(folder, pwd)
 
-        for line in process.stdout:
-            print(line, end="")
+        while True:
+
+            #Benefits smoother scrolling of lib_output texfield
+            time.sleep(0.5)
+            line = process.stdout.readline().decode()
+
+            print(line, end='')        
             self.lib_output.value += line
             self.update()
 
-        process.wait()
+            if process.poll() is not None and line == '':
+                break
 
         self.close_button.disabled = False
         self.cancel_button.disabled = True
