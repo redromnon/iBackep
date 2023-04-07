@@ -15,7 +15,7 @@ class Encrypt(ft.UserControl):
         )
 
         self.info_button = ft.IconButton(
-            icon=ft.icons.INFO_ROUNDED, icon_size=28, on_click=self.toggle_help
+            icon=ft.icons.INFO_ROUNDED, icon_size=28, on_click=self.toggle_help, tooltip="Show encryption help"
         )
 
         self.encrypt_help = ft.AlertDialog(

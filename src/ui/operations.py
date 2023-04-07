@@ -42,7 +42,7 @@ class Operation(ft.UserControl):
        
         while True:
 
-            #Benefits smoother scrolling of lib_output texfield
+            #Benefits smoother scrolling for lib_output texfield
             time.sleep(0.5)
             line = process.stdout.readline().decode()
 
@@ -70,7 +70,7 @@ class Operation(ft.UserControl):
 
         while True:
 
-            #Benefits smoother scrolling of lib_output texfield
+            #Benefits smoother scrolling for lib_output texfield
             time.sleep(0.5)
             line = process.stdout.readline().decode()
 
