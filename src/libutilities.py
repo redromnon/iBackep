@@ -1,6 +1,6 @@
 #Use libimobiledevice's idevicebackup2 utility
 
-import subprocess
+import subprocess, threading
 
 #Scan for any iDevice
 def scan():
@@ -28,9 +28,12 @@ def scan():
 
 
 #Perform backup, restore and cancel actions
-class Action:
+class Action(threading.Thread):
 
     process = None
+
+    def run(self):
+        pass
 
     def backup(self, folder, password):
 
