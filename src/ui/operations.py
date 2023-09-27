@@ -5,7 +5,9 @@ class Operation(ft.UserControl):
     
     def build(self):
         
+        #Thread
         self.action = Action()
+        self.action.start()
         
         self.lib_output = ft.TextField(value="", filled=True, read_only=True, multiline=True, text_size=13, color=ft.colors.AMBER)
         
