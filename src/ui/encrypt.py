@@ -4,13 +4,8 @@ class Encrypt(ft.UserControl):
     
     def build(self):
 
-        self.encrypt_checkbox = ft.Checkbox(
-            fill_color={ft.MaterialState.HOVERED: ft.colors.LIGHT_BLUE}, on_change=self.enable_checkbox,
-            tooltip="Enable encryption"
-        )
-
         self.password_field = ft.TextField(
-            password=True, can_reveal_password=True, disabled=True, width=270, height=40, 
+            password=True, can_reveal_password=True, width=270, height=40, 
             content_padding=ft.padding.only(bottom=15, left=10), hint_text="Encryption password"
         )
 
@@ -22,35 +17,22 @@ class Encrypt(ft.UserControl):
             title=ft.Text("Encryption Help", text_align="center"),
             content=ft.Column(
                 [
-                    ft.Text("Your backup can be protected by encrypting it with a password. Just enable the checkbox and type your password.\n\n" +
-                            "When performing a BACKUP, you need to set a password and encrypt it for the first time only." +
-                            " There's no need to insert the password every time once it's already encrypted.\n\n" +
-                            "When performing a RESTORE however, you will need to insert the password every single time.",
-                            text_align="center", style="bodySmall", size=14),
+                    ft.Text("You are required to enter the correct password if the backup is encrypted.",
+                            text_align="center", style="bodySmall", size=13),
                 ],
-                horizontal_alignment="center", height=150, width=500
+                horizontal_alignment="center", height=50, width=200
             ),
-            actions=[ft.TextButton("Ok", on_click=self.toggle_help)], modal=True 
+            actions=[ft.TextButton("Ok", on_click=self.toggle_help)], modal=True,
+            actions_alignment=ft.MainAxisAlignment.CENTER 
         )
 
-        return ft.Row([self.encrypt_checkbox, self.password_field, self.info_button, self.encrypt_help], spacing=10, alignment="center")
+        return ft.Row([self.password_field, self.info_button, self.encrypt_help], spacing=10, alignment="center")
 
-    
-    def enable_checkbox(self,e):
-        
-        if self.encrypt_checkbox.value:
-        
-            self.password_field.disabled=False
-            self.update()
-
-        else:
-
-            self.password_field.disabled=True
-            self.update()
 
     def get_pwd(self):
                 
         return self.password_field.value
+
 
     def toggle_help(self, e):
 
