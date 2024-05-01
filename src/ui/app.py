@@ -1,5 +1,4 @@
 import flet as ft
-from libutilities import scan
 from ui.about import About
 from ui.encrypt import Encrypt
 from ui.operations import Operation
@@ -23,13 +22,6 @@ class App(ft.UserControl):
         self.no_device_dialog = ft.SnackBar(content=ft.Text("No device found"))
 
         self.no_folder_selected_dlg = ft.SnackBar(content=ft.Text("Please select a destination folder using the folder icon"))
-        
-
-        #Banner dialog
-        self.lib_not_installed_banner = ft.Banner(
-            content=ft.Text("Looks like libimobiledevice or libimobiledevice-utils is not installed"),
-            actions=[ft.TextButton("Ok", on_click=self.close_banner)]
-        )
 
 
         #Folder
@@ -73,8 +65,7 @@ class App(ft.UserControl):
         self.main_container = ft.Stack(
             [
                 #Alerts and dialogs go here
-                self.lib_not_installed_banner, self.operation_dialog,
-                self.no_device_dialog, self.no_folder_selected_dlg,
+                self.operation_dialog, self.no_device_dialog, self.no_folder_selected_dlg,
 
                 #Others
                 ft.Column(
@@ -97,19 +88,10 @@ class App(ft.UserControl):
         self.update()
     
     
-    #Close action finished banner
-    def close_banner(self, e):
-        
-        if(self.lib_not_installed_banner.open):
-            self.lib_not_installed_banner.open = False
-
-        self.update()
-    
-    
     #Call backup/restore/cancel actions    
     def do_backup(self, e):
 
-        #check if folder path is specified
+        #check if folder path is specified and run operation
         if(len(self.display_folderpath.value) == 0):
             
             self.no_folder_selected_dlg.open = True
@@ -117,31 +99,19 @@ class App(ft.UserControl):
 
             return
 
-        
-        #check if lib is installed & device is connected
-        lib_installed, status = scan()
-
-        if lib_installed and status:
-            print("Device found!")
+        else:
 
             #Run backup operation
             print("Backup running...")
             pwd = self.pwd_encrypt.get_pwd()#Check if password is given
             self.operation_dialog.backup(self.display_folderpath.value, pwd)
 
-        elif lib_installed and not status:
-            self.no_device_dialog.open = True
-            self.update()
-
-        else:
-            self.lib_not_installed_banner.open = True
-
             self.update()
 
 
     def do_restore(self, e):
         
-        #check if folder path is specified
+        #check if folder path is specified and run operation
         if(len(self.display_folderpath.value) == 0):
             
             self.no_folder_selected_dlg.open = True
@@ -149,24 +119,12 @@ class App(ft.UserControl):
 
             return
         
-
-        #check if lib is installed & device is connected
-        lib_installed, status = scan()
-
-        if lib_installed and status:
-            print("Device found!")
+        else:
 
             #Run restore operation
             print("Restore running...")
             pwd = self.pwd_encrypt.get_pwd()#Check if password is given
             self.operation_dialog.restore(self.display_folderpath.value, pwd)
-
-        elif lib_installed and not status:
-            self.no_device_dialog.open = True
-            self.update()
-
-        else:
-            self.lib_not_installed_banner.open = True
 
             self.update()        
 
