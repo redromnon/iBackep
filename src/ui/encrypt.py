@@ -49,12 +49,8 @@ class Encrypt(ft.UserControl):
             self.update()
 
     def get_pwd(self):
-
-        if self.encrypt_checkbox.value:
-
-            if len(self.password_field.value) > 0:
                 
-                return self.password_field.value
+        return self.password_field.value
 
     def toggle_help(self, e):
 

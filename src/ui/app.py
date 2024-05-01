@@ -106,20 +106,19 @@ class App(ft.UserControl):
             lockdown_client = pymobiledevice3.lockdown.create_using_usbmux()
             print(lockdown_client.display_name)
 
-        
+            pwd = self.pwd_encrypt.get_pwd()#Check if password is given
+
             if backup:
                 #Run backup operation
                 print("Backup running...")
-                pwd = self.pwd_encrypt.get_pwd()#Check if password is given
-                self.operation_dialog.backup(self.display_folderpath.value, pwd)
+                self.operation_dialog.backup(self.display_folderpath.value, pwd, lockdown_client)
 
                 self.update()
 
             if restore:
                 #Run restore operation
                 print("Restore running...")
-                pwd = self.pwd_encrypt.get_pwd()#Check if password is given
-                self.operation_dialog.restore(self.display_folderpath.value, pwd)
+                self.operation_dialog.restore(self.display_folderpath.value, pwd, lockdown_client)
 
                 self.update() 
 

@@ -1,112 +1,78 @@
 import flet as ft, time
-from libutilities import Action
+import pymobiledevice3.services.mobilebackup2
 
 class Operation(ft.UserControl):
     
     def build(self):
-        
-        #Thread
-        self.action = Action()
-        self.action.start()
-        
-        self.lib_output = ft.TextField(value="", filled=True, read_only=True, multiline=True, text_size=13, color=ft.colors.AMBER)
-        
+                        
         self.close_button = ft.TextButton("Close", disabled=True, on_click=self.close_dialog)
-        self.cancel_button = ft.TextButton("Cancel", disabled=False, on_click=self.cancel_op)
 
-        self.loading = ft.ProgressBar()
+        self.loading = ft.ProgressBar(value=None)
+
+        self.progress_tracker = ft.Text(value="Finished", weight=ft.FontWeight.W_300, size=15, visible=False)
         
-        self.result_dialog = ft.AlertDialog(
+        self.modal_dialog = ft.AlertDialog(
             content=ft.Column(
                 [
-                    self.loading,
-                    ft.Column(
-                        [self.lib_output], 
-                        horizontal_alignment="center", expand=True, auto_scroll=True, scroll="auto",
-                        width=600
-                    ),
-                ], width=600
+                    self.progress_tracker, self.loading
+                ], width=600, horizontal_alignment="center", alignment="center",
             ),
             content_padding=30, modal=True,
-            actions=[self.close_button, self.cancel_button]
+            actions=[self.close_button], actions_alignment=ft.MainAxisAlignment.CENTER
         )
 
-        return self.result_dialog
+        return self.modal_dialog
 
-    def backup(self, folder, pwd):
+    def backup(self, folder, pwd, client):
 
-        self.result_dialog.open = True
-        self.result_dialog.title = ft.Text("Backing Up", text_align="center")
-        self.lib_output.value = "Running backup...\n"
+        self.modal_dialog.open = True
+        self.modal_dialog.title = ft.Text("Backup", text_align="center")
         self.update()
 
-        process = self.action.backup(folder, pwd)
-       
-        while True:
+        #actual process
+        backup_service = pymobiledevice3.services.mobilebackup2.Mobilebackup2Service(lockdown=client)
+        backup_service.backup(
+            backup_directory=folder,
+            progress_callback=self.progressbar
+        )
 
-            #Benefits smoother scrolling for lib_output texfield
-            time.sleep(0.5)
-            line = process.stdout.readline().decode()
-
-            print(line, end='')        
-            self.lib_output.value += line
-            self.update()
-
-            if process.poll() is not None and line == '':
-                break
-
+        backup_service = None
+        self.progress_tracker.visible = True
         self.close_button.disabled = False
-        self.cancel_button.disabled = True
-        self.loading.value = 0.0
         self.update()
 
     
-    def restore(self, folder, pwd):
+    def restore(self, folder, pwd, client):
 
-        self.result_dialog.open = True
-        self.result_dialog.title = ft.Text("Restoring", text_align="center")
-        self.lib_output.value = "Running restore...\n"
+        self.modal_dialog.open = True
+        self.modal_dialog.title = ft.Text("Restore", text_align="center")
         self.update()
 
-        process = self.action.restore(folder, pwd)
+        #actual process
+        restore_service = pymobiledevice3.services.mobilebackup2.Mobilebackup2Service(lockdown=client)
+        restore_service.restore(
+            backup_directory=folder,
+            progress_callback=self.progressbar,
+            password=pwd,
+            source=client.identifier
+        )
 
-        while True:
-
-            #Benefits smoother scrolling for lib_output texfield
-            time.sleep(0.5)
-            line = process.stdout.readline().decode()
-
-            print(line, end='')        
-            self.lib_output.value += line
-            self.update()
-
-            if process.poll() is not None and line == '':
-                break
-
+        restore_service = None
+        self.progress_tracker.visible = True
         self.close_button.disabled = False
-        self.cancel_button.disabled = True
-        self.loading.value = 0.0
         self.update()
 
 
     def close_dialog(self, e):
 
         #Reset properties to default
-        self.lib_output.value = ""
         self.close_button.disabled = True
-        self.cancel_button.disabled = False
         self.loading.value = None
-        self.result_dialog.open = False
+        self.modal_dialog.open = False
+        self.progress_tracker.visible = False
         self.update()
 
-
-    def cancel_op(self, e):
-
-        self.lib_output.value += "\n--CANCELLED BY USER--"
-        self.loading.value = 0.0
-        self.update()
-
-        self.action.cancel()
-
-        
-
+    def progressbar(self, e):
+        print(e)
+        self.loading.value = round(e)/100
+        self.loading.update()
