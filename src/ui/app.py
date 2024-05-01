@@ -1,7 +1,8 @@
-import flet as ft
+import flet as ft, traceback
 from ui.about import About
 from ui.encrypt import Encrypt
 from ui.operations import Operation
+import pymobiledevice3.lockdown, pymobiledevice3.exceptions
 
 class App(ft.UserControl): 
     
@@ -40,12 +41,14 @@ class App(ft.UserControl):
         
         #Options
         self.backupbtn = ft.ElevatedButton(
-            "Backup", icon=ft.icons.SETTINGS_BACKUP_RESTORE_ROUNDED, on_click=self.do_backup,
+            "Backup", icon=ft.icons.SETTINGS_BACKUP_RESTORE_ROUNDED, 
+            on_click=lambda e: self.call_operations(backup=True),
             disabled=False
         )
 
         self.restorebtn = ft.ElevatedButton(
-            "Restore", icon=ft.icons.RESTORE_ROUNDED, on_click=self.do_restore,
+            "Restore", icon=ft.icons.RESTORE_ROUNDED, 
+            on_click=lambda e: self.call_operations(restore=True),
             disabled=False
             )
 
@@ -87,9 +90,9 @@ class App(ft.UserControl):
 
         self.update()
     
-    
-    #Call backup/restore/cancel actions    
-    def do_backup(self, e):
+
+    #Call backup/restore/cancel actions 
+    def call_operations(self, backup=False, restore=False):
 
         #check if folder path is specified and run operation
         if(len(self.display_folderpath.value) == 0):
@@ -98,33 +101,31 @@ class App(ft.UserControl):
             self.update()
 
             return
-
-        else:
-
-            #Run backup operation
-            print("Backup running...")
-            pwd = self.pwd_encrypt.get_pwd()#Check if password is given
-            self.operation_dialog.backup(self.display_folderpath.value, pwd)
-
-            self.update()
-
-
-    def do_restore(self, e):
         
-        #check if folder path is specified and run operation
-        if(len(self.display_folderpath.value) == 0):
-            
-            self.no_folder_selected_dlg.open = True
-            self.update()
+        try:#to connect to device via USB and perform operations
+            lockdown_client = pymobiledevice3.lockdown.create_using_usbmux()
+            print(lockdown_client.display_name)
 
-            return
         
-        else:
+            if backup:
+                #Run backup operation
+                print("Backup running...")
+                pwd = self.pwd_encrypt.get_pwd()#Check if password is given
+                self.operation_dialog.backup(self.display_folderpath.value, pwd)
 
-            #Run restore operation
-            print("Restore running...")
-            pwd = self.pwd_encrypt.get_pwd()#Check if password is given
-            self.operation_dialog.restore(self.display_folderpath.value, pwd)
+                self.update()
 
-            self.update()        
+            if restore:
+                #Run restore operation
+                print("Restore running...")
+                pwd = self.pwd_encrypt.get_pwd()#Check if password is given
+                self.operation_dialog.restore(self.display_folderpath.value, pwd)
 
+                self.update() 
+
+            lockdown_client = None 
+
+        except pymobiledevice3.exceptions.ConnectionFailedToUsbmuxdError:
+            print(traceback.format_exc())
+            self.no_device_dialog.open = True
+            self.update()
