@@ -1,5 +1,4 @@
 import flet as ft, time
-import pymobiledevice3.services.mobilebackup2
 
 class Operation(ft.UserControl):
     
@@ -23,41 +22,37 @@ class Operation(ft.UserControl):
 
         return self.modal_dialog
 
-    def backup(self, folder, pwd, client):
+    def backup(self, folder, pwd, service):
 
         self.modal_dialog.open = True
         self.modal_dialog.title = ft.Text("Backup", text_align="center")
         self.update()
 
-        #actual process
-        backup_service = pymobiledevice3.services.mobilebackup2.Mobilebackup2Service(lockdown=client)
-        backup_service.backup(
+        #run process
+        service.backup(
             backup_directory=folder,
             progress_callback=self.progressbar
         )
 
-        backup_service = None
         self.progress_tracker.visible = True
         self.close_button.disabled = False
         self.update()
 
     
-    def restore(self, folder, pwd, client):
+    def restore(self, folder, pwd, service, identifier):
 
         self.modal_dialog.open = True
         self.modal_dialog.title = ft.Text("Restore", text_align="center")
         self.update()
 
-        #actual process
-        restore_service = pymobiledevice3.services.mobilebackup2.Mobilebackup2Service(lockdown=client)
-        restore_service.restore(
+        #run process
+        service.restore(
             backup_directory=folder,
             progress_callback=self.progressbar,
             password=pwd,
-            source=client.identifier
+            source=identifier
         )
 
-        restore_service = None
         self.progress_tracker.visible = True
         self.close_button.disabled = False
         self.update()

@@ -2,7 +2,7 @@ import flet as ft, traceback
 from ui.about import About
 from ui.encrypt import Encrypt
 from ui.operations import Operation
-import pymobiledevice3.lockdown, pymobiledevice3.exceptions
+import pymobiledevice3.lockdown, pymobiledevice3.exceptions, pymobiledevice3.services.mobilebackup2
 
 class App(ft.UserControl): 
     
@@ -105,24 +105,26 @@ class App(ft.UserControl):
         try:#to connect to device via USB and perform operations
             lockdown_client = pymobiledevice3.lockdown.create_using_usbmux()
             print(lockdown_client.display_name)
+            service = pymobiledevice3.services.mobilebackup2.Mobilebackup2Service(lockdown=lockdown_client)
 
             pwd = self.pwd_encrypt.get_pwd()#Check if password is given
 
             if backup:
                 #Run backup operation
                 print("Backup running...")
-                self.operation_dialog.backup(self.display_folderpath.value, pwd, lockdown_client)
+                self.operation_dialog.backup(self.display_folderpath.value, pwd, service)
 
                 self.update()
 
             if restore:
                 #Run restore operation
                 print("Restore running...")
-                self.operation_dialog.restore(self.display_folderpath.value, pwd, lockdown_client)
+                self.operation_dialog.restore(self.display_folderpath.value, pwd, service, lockdown_client.identifier)
 
                 self.update() 
 
-            lockdown_client = None 
+            lockdown_client = None
+            service = None 
 
         except pymobiledevice3.exceptions.ConnectionFailedToUsbmuxdError:
             print(traceback.format_exc())
