@@ -120,10 +120,23 @@ class App(ft.UserControl):
 
             #Check if password is given
             pwd = self.pwd_encrypt.get_pwd()
+
+            #Get info about backup
+            try:
+                #Need to create a separate service, because operation will give ConnectionAbortedError
+                backup_service = pymobiledevice3.services.mobilebackup2.Mobilebackup2Service(lockdown=lockdown_client)
+                backup_info = backup_service.info(backup_directory=self.display_folderpath.value, source=lockdown_client.identifier)
+            except: #If can't get info, then it is first backup
+                is_first_backup = True
+                print('Detected new backup folder')
+            else: #Print backup_info if it exists
+                is_first_backup = False
+                print('Backup Information:\n', backup_info)
+
             if backup:
                 #Run backup operation
                 print("Backup running...")
-                status = self.operation_dialog.backup(self.display_folderpath.value, pwd, service)
+                status = self.operation_dialog.backup(self.display_folderpath.value, pwd, service, is_first_backup)
 
                 if status is False:
                     self.error_message_dlg.content = ft.Text("Backup failed")
@@ -144,4 +157,5 @@ class App(ft.UserControl):
 
             lockdown_client = None
             service = None 
+            backup_service = None
             pwd = None

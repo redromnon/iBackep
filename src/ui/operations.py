@@ -29,7 +29,7 @@ class Operation(ft.UserControl):
         self.update()
 
 
-    def backup(self, folder, pwd, service):
+    def backup(self, folder, pwd, service, is_first_backup):
 
         self.modal_dialog.open = True
         self.modal_dialog.title = ft.Text("Backup", text_align="center")
@@ -40,7 +40,8 @@ class Operation(ft.UserControl):
         try:
             service.backup(
                 backup_directory=folder,
-                progress_callback=self.progressbar
+                progress_callback=self.progressbar,
+                full=is_first_backup
             )
         except:
             print(traceback.format_exc())
