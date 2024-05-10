@@ -1,4 +1,4 @@
-import flet as ft, time
+import flet as ft, time, traceback
 
 class Operation(ft.UserControl):
     
@@ -29,15 +29,21 @@ class Operation(ft.UserControl):
         self.update()
 
         #run process
-        service.backup(
-            backup_directory=folder,
-            progress_callback=self.progressbar
-        )
+        try:
+            service.backup(
+                backup_directory=folder,
+                progress_callback=self.progressbar
+            )
 
-        self.progress_tracker.visible = True
-        self.close_button.disabled = False
-        self.update()
+            self.progress_tracker.visible = True
+            self.close_button.disabled = False
+            self.update()
 
+            return True
+        except:
+            print(traceback.format_exc())
+            self.close_dialog()
+            return False
     
     def restore(self, folder, pwd, service, identifier):
 
@@ -46,19 +52,26 @@ class Operation(ft.UserControl):
         self.update()
 
         #run process
-        service.restore(
-            backup_directory=folder,
-            progress_callback=self.progressbar,
-            password=pwd,
-            source=identifier
-        )
+        try:
+            service.restore(
+                backup_directory=folder,
+                progress_callback=self.progressbar,
+                password=pwd,
+                source=identifier
+            )
 
-        self.progress_tracker.visible = True
-        self.close_button.disabled = False
-        self.update()
+            self.progress_tracker.visible = True
+            self.close_button.disabled = False
+            self.update()
+
+            return True
+        except:
+            print(traceback.format_exc())
+            self.close_dialog()
+            return False
 
 
-    def close_dialog(self, e):
+    def close_dialog(self, e=None):
 
         #Reset properties to default
         self.close_button.disabled = True

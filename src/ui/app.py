@@ -24,6 +24,7 @@ class App(ft.UserControl):
 
         self.no_folder_selected_dlg = ft.SnackBar(content=ft.Text("Please select a destination folder using the folder icon"))
 
+        self.error_message_dlg = ft.SnackBar(content=None)
 
         #Folder
         self.folder_picker = ft.FilePicker(on_result=self.folder_dialog_result)
@@ -68,7 +69,7 @@ class App(ft.UserControl):
         self.main_container = ft.Stack(
             [
                 #Alerts and dialogs go here
-                self.operation_dialog, self.no_device_dialog, self.no_folder_selected_dlg,
+                self.operation_dialog, self.no_device_dialog, self.no_folder_selected_dlg, self.error_message_dlg,
 
                 #Others
                 ft.Column(
@@ -103,28 +104,40 @@ class App(ft.UserControl):
             return
         
         try:#to connect to device via USB and perform operations
+
+            #Create lockdown client
             lockdown_client = pymobiledevice3.lockdown.create_using_usbmux()
             print(lockdown_client.display_name)
-            service = pymobiledevice3.services.mobilebackup2.Mobilebackup2Service(lockdown=lockdown_client)
 
-            pwd = self.pwd_encrypt.get_pwd()#Check if password is given
+            #Create backup/restore service
+            service = pymobiledevice3.services.mobilebackup2.Mobilebackup2Service(lockdown=lockdown_client)
 
             if backup:
                 #Run backup operation
                 print("Backup running...")
-                self.operation_dialog.backup(self.display_folderpath.value, pwd, service)
+                status = self.operation_dialog.backup(self.display_folderpath.value, pwd, service)
+
+                if status is False:
+                    self.error_message_dlg.content = ft.Text("Backup failed")
+                    self.error_message_dlg.open = True
 
                 self.update()
 
             if restore:
                 #Run restore operation
                 print("Restore running...")
-                self.operation_dialog.restore(self.display_folderpath.value, pwd, service, lockdown_client.identifier)
+                status = self.operation_dialog.restore(self.display_folderpath.value, pwd, service, lockdown_client.identifier)
+
+                if status is False:
+                    self.error_message_dlg.content = ft.Text("Restore failed: Enter correct password for the encrypted backup")
+                    self.error_message_dlg.open = True
 
                 self.update() 
 
             lockdown_client = None
             service = None 
+            backup_info = None
+            pwd = None
 
         except pymobiledevice3.exceptions.ConnectionFailedToUsbmuxdError:
             print(traceback.format_exc())
