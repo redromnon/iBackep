@@ -8,7 +8,7 @@ class Operation(ft.UserControl):
 
         self.loading = ft.ProgressBar(value=None)
 
-        self.progress_tracker = ft.Text(value="Finished", weight=ft.FontWeight.W_300, size=15, visible=False)
+        self.progress_tracker = ft.Text(weight=ft.FontWeight.W_300, size=15)
         
         self.modal_dialog = ft.AlertDialog(
             content=ft.Column(
@@ -22,10 +22,18 @@ class Operation(ft.UserControl):
 
         return self.modal_dialog
 
+
+    def _after_operations(self): #Enable UI after operation is successful
+        self.close_button.disabled = False
+        self.progress_tracker.value = "Finished"
+        self.update()
+
+
     def backup(self, folder, pwd, service):
 
         self.modal_dialog.open = True
         self.modal_dialog.title = ft.Text("Backup", text_align="center")
+        self.progress_tracker.value = "Running..."
         self.update()
 
         #run process
@@ -34,21 +42,19 @@ class Operation(ft.UserControl):
                 backup_directory=folder,
                 progress_callback=self.progressbar
             )
-
-            self.progress_tracker.visible = True
-            self.close_button.disabled = False
-            self.update()
-
-            return True
         except:
             print(traceback.format_exc())
             self.close_dialog()
             return False
+        else:
+            self._after_operations()
+            return True
     
     def restore(self, folder, pwd, service, identifier):
 
         self.modal_dialog.open = True
         self.modal_dialog.title = ft.Text("Restore", text_align="center")
+        self.progress_tracker.value = "Running..."
         self.update()
 
         #run process
@@ -59,16 +65,13 @@ class Operation(ft.UserControl):
                 password=pwd,
                 source=identifier
             )
-
-            self.progress_tracker.visible = True
-            self.close_button.disabled = False
-            self.update()
-
-            return True
         except:
             print(traceback.format_exc())
             self.close_dialog()
             return False
+        else:
+            self._after_operations()
+            return True
 
 
     def close_dialog(self, e=None):
@@ -77,7 +80,6 @@ class Operation(ft.UserControl):
         self.close_button.disabled = True
         self.loading.value = None
         self.modal_dialog.open = False
-        self.progress_tracker.visible = False
         self.update()
 
     def progressbar(self, e):

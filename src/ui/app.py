@@ -103,15 +103,23 @@ class App(ft.UserControl):
 
             return
         
-        try:#to connect to device via USB and perform operations
-
+        #to connect to device via USB and perform operations
+        try:
             #Create lockdown client
             lockdown_client = pymobiledevice3.lockdown.create_using_usbmux()
             print(lockdown_client.display_name)
-
+        #handle exception where device is not available
+        except pymobiledevice3.exceptions.ConnectionFailedToUsbmuxdError:
+            print(traceback.format_exc())
+            self.no_device_dialog.open = True
+            self.update()
+        #run operations if lockdown client creation is successful
+        else:
             #Create backup/restore service
             service = pymobiledevice3.services.mobilebackup2.Mobilebackup2Service(lockdown=lockdown_client)
 
+            #Check if password is given
+            pwd = self.pwd_encrypt.get_pwd()
             if backup:
                 #Run backup operation
                 print("Backup running...")
@@ -136,10 +144,4 @@ class App(ft.UserControl):
 
             lockdown_client = None
             service = None 
-            backup_info = None
             pwd = None
-
-        except pymobiledevice3.exceptions.ConnectionFailedToUsbmuxdError:
-            print(traceback.format_exc())
-            self.no_device_dialog.open = True
-            self.update()
