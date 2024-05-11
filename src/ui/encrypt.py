@@ -5,12 +5,14 @@ class Encrypt(ft.UserControl):
     def build(self):
 
         self.password_field = ft.TextField(
-            password=True, can_reveal_password=True, width=270, height=40, 
-            content_padding=ft.padding.only(bottom=15, left=10), hint_text="Encryption password"
+            password=True, can_reveal_password=True, 
+            filled=False, border=ft.InputBorder.UNDERLINE,
+            hint_text="Encryption password"
         )
 
         self.info_button = ft.IconButton(
-            icon=ft.icons.INFO_ROUNDED, icon_size=28, on_click=self.toggle_help, tooltip="Show encryption help"
+            icon=ft.icons.INFO_ROUNDED, icon_size=28, on_click=self.toggle_help, tooltip="Show encryption help",
+            icon_color=ft.colors.WHITE70
         )
 
         self.encrypt_help = ft.AlertDialog(
@@ -18,7 +20,7 @@ class Encrypt(ft.UserControl):
             content=ft.Column(
                 [
                     ft.Text("You are required to enter the correct password if the backup is encrypted.",
-                            text_align="center", style="bodySmall", size=13),
+                            text_align="center", theme_style="bodySmall", size=13),
                 ],
                 horizontal_alignment="center", height=50, width=200
             ),

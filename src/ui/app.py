@@ -31,12 +31,13 @@ class App(ft.UserControl):
         
         self.display_folderpath = ft.TextField(
             hint_text="Select folder icon", width=400, read_only=True, border="none", 
-            filled=True, max_lines=3, color="#a6a6a6"
+            filled=True, max_lines=3, color=ft.colors.WHITE70
         )
 
         self.select_folder_icon = ft.IconButton(
             icon=ft.icons.FOLDER_ROUNDED, tooltip="Select folder location", 
-            icon_size=36, on_click=lambda e: self.folder_picker.get_directory_path()
+            icon_size=36, on_click=lambda e: self.folder_picker.get_directory_path(),
+            icon_color=ft.colors.WHITE70
         )
 
         
@@ -44,14 +45,17 @@ class App(ft.UserControl):
         self.backupbtn = ft.ElevatedButton(
             "Backup", icon=ft.icons.SETTINGS_BACKUP_RESTORE_ROUNDED, 
             on_click=lambda e: self.call_operations(backup=True),
-            disabled=False
+            disabled=False, style=ft.ButtonStyle(shape=ft.StadiumBorder(), padding=15),
+            icon_color=ft.colors.BLACK87, color=ft.colors.BLACK87, bgcolor=ft.colors.WHITE
         )
 
         self.restorebtn = ft.ElevatedButton(
-            "Restore", icon=ft.icons.RESTORE_ROUNDED, 
+            "Restore", 
+            icon=ft.icons.RESTORE_ROUNDED, 
             on_click=lambda e: self.call_operations(restore=True),
-            disabled=False
-            )
+            disabled=False, style=ft.ButtonStyle(shape=ft.StadiumBorder(), padding=15),
+            icon_color=ft.colors.BLACK87, color=ft.colors.BLACK87, bgcolor=ft.colors.WHITE
+        )
 
 
         
@@ -102,6 +106,11 @@ class App(ft.UserControl):
             self.update()
 
             return
+        
+        #Disable buttons
+        self.backupbtn.disabled = True
+        self.restorebtn.disabled = True
+        self.update()
         
         #to connect to device via USB and perform operations
         try:
@@ -159,3 +168,8 @@ class App(ft.UserControl):
             service = None 
             backup_service = None
             pwd = None
+        
+        #Renable buttons
+        self.backupbtn.disabled = False
+        self.restorebtn.disabled = False
+        self.update()

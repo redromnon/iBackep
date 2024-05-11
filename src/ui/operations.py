@@ -6,17 +6,14 @@ class Operation(ft.UserControl):
                         
         self.close_button = ft.TextButton("Close", disabled=True, on_click=self.close_dialog)
 
-        self.loading = ft.ProgressBar(value=None)
-
-        self.progress_tracker = ft.Text(weight=ft.FontWeight.W_300, size=15)
+        self.loading = ft.ProgressRing(value=None, width=60, height=60, stroke_width=5, bgcolor=ft.colors.GREY, color=ft.colors.WHITE)
         
         self.modal_dialog = ft.AlertDialog(
-            content=ft.Column(
-                [
-                    self.progress_tracker, self.loading
-                ], width=600, horizontal_alignment="center", alignment="center",
+            content=ft.Container(
+                content=self.loading, 
+                alignment=ft.alignment.center, height=100, width=100
             ),
-            content_padding=30, modal=True,
+            content_padding=30, modal=True, 
             actions=[self.close_button], actions_alignment=ft.MainAxisAlignment.CENTER
         )
 
@@ -25,7 +22,6 @@ class Operation(ft.UserControl):
 
     def _after_operations(self): #Enable UI after operation is successful
         self.close_button.disabled = False
-        self.progress_tracker.value = "Finished"
         self.update()
 
 
@@ -33,7 +29,6 @@ class Operation(ft.UserControl):
 
         self.modal_dialog.open = True
         self.modal_dialog.title = ft.Text("Backup", text_align="center")
-        self.progress_tracker.value = "Running..."
         self.update()
 
         #run process
@@ -55,7 +50,6 @@ class Operation(ft.UserControl):
 
         self.modal_dialog.open = True
         self.modal_dialog.title = ft.Text("Restore", text_align="center")
-        self.progress_tracker.value = "Running..."
         self.update()
 
         #run process
