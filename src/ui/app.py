@@ -1,8 +1,8 @@
-import flet as ft
-from libutilities import scan
+import flet as ft, traceback
 from ui.about import About
 from ui.encrypt import Encrypt
 from ui.operations import Operation
+import pymobiledevice3.lockdown, pymobiledevice3.exceptions, pymobiledevice3.services.mobilebackup2
 
 class App(ft.UserControl): 
     
@@ -23,39 +23,39 @@ class App(ft.UserControl):
         self.no_device_dialog = ft.SnackBar(content=ft.Text("No device found"))
 
         self.no_folder_selected_dlg = ft.SnackBar(content=ft.Text("Please select a destination folder using the folder icon"))
-        
 
-        #Banner dialog
-        self.lib_not_installed_banner = ft.Banner(
-            content=ft.Text("Looks like libimobiledevice or libimobiledevice-utils is not installed"),
-            actions=[ft.TextButton("Ok", on_click=self.close_banner)]
-        )
-
+        self.error_message_dlg = ft.SnackBar(content=None)
 
         #Folder
         self.folder_picker = ft.FilePicker(on_result=self.folder_dialog_result)
         
         self.display_folderpath = ft.TextField(
             hint_text="Select folder icon", width=400, read_only=True, border="none", 
-            filled=True, max_lines=3, color="#a6a6a6"
+            filled=True, max_lines=3, color=ft.colors.WHITE70
         )
 
         self.select_folder_icon = ft.IconButton(
             icon=ft.icons.FOLDER_ROUNDED, tooltip="Select folder location", 
-            icon_size=36, on_click=lambda e: self.folder_picker.get_directory_path()
+            icon_size=36, on_click=lambda e: self.folder_picker.get_directory_path(),
+            icon_color=ft.colors.WHITE70
         )
 
         
         #Options
         self.backupbtn = ft.ElevatedButton(
-            "Backup", icon=ft.icons.SETTINGS_BACKUP_RESTORE_ROUNDED, on_click=self.do_backup,
-            disabled=False
+            "Backup", icon=ft.icons.SETTINGS_BACKUP_RESTORE_ROUNDED, 
+            on_click=lambda e: self.call_operations(backup=True),
+            disabled=False, style=ft.ButtonStyle(shape=ft.StadiumBorder(), padding=15),
+            icon_color=ft.colors.BLACK87, color=ft.colors.BLACK87, bgcolor=ft.colors.WHITE
         )
 
         self.restorebtn = ft.ElevatedButton(
-            "Restore", icon=ft.icons.RESTORE_ROUNDED, on_click=self.do_restore,
-            disabled=False
-            )
+            "Restore", 
+            icon=ft.icons.RESTORE_ROUNDED, 
+            on_click=lambda e: self.call_operations(restore=True),
+            disabled=False, style=ft.ButtonStyle(shape=ft.StadiumBorder(), padding=15),
+            icon_color=ft.colors.BLACK87, color=ft.colors.BLACK87, bgcolor=ft.colors.WHITE
+        )
 
 
         
@@ -73,8 +73,7 @@ class App(ft.UserControl):
         self.main_container = ft.Stack(
             [
                 #Alerts and dialogs go here
-                self.lib_not_installed_banner, self.operation_dialog,
-                self.no_device_dialog, self.no_folder_selected_dlg,
+                self.operation_dialog, self.no_device_dialog, self.no_folder_selected_dlg, self.error_message_dlg,
 
                 #Others
                 ft.Column(
@@ -96,77 +95,72 @@ class App(ft.UserControl):
 
         self.update()
     
-    
-    #Close action finished banner
-    def close_banner(self, e):
-        
-        if(self.lib_not_installed_banner.open):
-            self.lib_not_installed_banner.open = False
 
+    #Call backup/restore/cancel actions 
+    def call_operations(self, backup=False, restore=False):
+
+        #check if folder path is specified and run operation
+        if(len(self.display_folderpath.value) == 0):
+            
+            self.no_folder_selected_dlg.open = True
+            self.update()
+
+            return
+        
+        #Disable buttons
+        self.backupbtn.disabled = True
+        self.restorebtn.disabled = True
         self.update()
-    
-    
-    #Call backup/restore/cancel actions    
-    def do_backup(self, e):
-
-        #check if folder path is specified
-        if(len(self.display_folderpath.value) == 0):
-            
-            self.no_folder_selected_dlg.open = True
-            self.update()
-
-            return
-
         
-        #check if lib is installed & device is connected
-        lib_installed, status = scan()
-
-        if lib_installed and status:
-            print("Device found!")
-
-            #Run backup operation
-            print("Backup running...")
-            pwd = self.pwd_encrypt.get_pwd()#Check if password is given
-            self.operation_dialog.backup(self.display_folderpath.value, pwd)
-
-        elif lib_installed and not status:
+        #to connect to device via USB and perform operations
+        try:
+            #Create lockdown client
+            lockdown_client = pymobiledevice3.lockdown.create_using_usbmux()
+            print(lockdown_client.display_name)
+        #handle exception where device is not available
+        except pymobiledevice3.exceptions.ConnectionFailedToUsbmuxdError:
+            print(traceback.format_exc())
             self.no_device_dialog.open = True
             self.update()
-
+        #run operations if lockdown client creation is successful
         else:
-            self.lib_not_installed_banner.open = True
+            #Create backup/restore service
+            service = pymobiledevice3.services.mobilebackup2.Mobilebackup2Service(lockdown=lockdown_client)
 
-            self.update()
+            #Check if password is given
+            pwd = self.pwd_encrypt.get_pwd()
 
+            backup_exists = self.operation_dialog.check_if_backup_exists(self.display_folderpath.value)
+            print('New backup folder?:', backup_exists)
 
-    def do_restore(self, e):
+            if backup:
+                #Run backup operation
+                print("Backup running...")
+                status = self.operation_dialog.backup(self.display_folderpath.value, pwd, service, backup_exists)
+
+                if status is False:
+                    self.error_message_dlg.content = ft.Text("Backup failed")
+                    self.error_message_dlg.open = True
+
+                self.update()
+
+            if restore:
+                #Run restore operation
+                print("Restore running...")
+                status = self.operation_dialog.restore(self.display_folderpath.value, pwd, service, lockdown_client.identifier)
+
+                if status is False:
+                    self.error_message_dlg.content = ft.Text("Restore failed: Enter correct password for the encrypted backup")
+                    self.error_message_dlg.open = True
+
+                self.update() 
+
+            lockdown_client = None
+            service = None 
+            backup_service = None
+            pwd = None
         
-        #check if folder path is specified
-        if(len(self.display_folderpath.value) == 0):
-            
-            self.no_folder_selected_dlg.open = True
-            self.update()
-
-            return
-        
-
-        #check if lib is installed & device is connected
-        lib_installed, status = scan()
-
-        if lib_installed and status:
-            print("Device found!")
-
-            #Run restore operation
-            print("Restore running...")
-            pwd = self.pwd_encrypt.get_pwd()#Check if password is given
-            self.operation_dialog.restore(self.display_folderpath.value, pwd)
-
-        elif lib_installed and not status:
-            self.no_device_dialog.open = True
-            self.update()
-
-        else:
-            self.lib_not_installed_banner.open = True
-
-            self.update()        
-
+        #Renable buttons
+        self.backupbtn.disabled = False
+        self.restorebtn.disabled = False
+        self.update()
