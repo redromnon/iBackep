@@ -118,7 +118,7 @@ class App(ft.UserControl):
             lockdown_client = pymobiledevice3.lockdown.create_using_usbmux()
             print(lockdown_client.display_name)
         #handle exception where device is not available
-        except pymobiledevice3.exceptions.ConnectionFailedToUsbmuxdError:
+        except:
             print(traceback.format_exc())
             self.no_device_dialog.open = True
             self.update()
@@ -159,8 +159,8 @@ class App(ft.UserControl):
             service = None 
             backup_service = None
             pwd = None
-        
-        #Renable buttons
-        self.backupbtn.disabled = False
-        self.restorebtn.disabled = False
-        self.update()
+        finally:
+            #Renable buttons
+            self.backupbtn.disabled = False
+            self.restorebtn.disabled = False
+            self.update()
