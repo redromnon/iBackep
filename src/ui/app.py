@@ -21,7 +21,7 @@ class App(ft.UserControl):
 
 
         #Snackbar (bottom) dialog
-        self.no_device_dialog = ft.SnackBar(content=ft.Text("No device found"), bgcolor=ft.colors.RED_500)
+        self.no_device_dialog = ft.SnackBar(content=ft.Text("No device found", color=ft.colors.WHITE), bgcolor=ft.colors.RED_500)
 
         self.no_folder_selected_dlg = ft.SnackBar(content=ft.Text("Please select a destination folder using the folder icon"))
 
@@ -109,7 +109,7 @@ class App(ft.UserControl):
 
             self.update()
         else:
-            self.error_message_dlg.content = ft.Text("Looks like Zenity is not installed")
+            self.error_message_dlg.content = ft.Text("Looks like Zenity is not installed", color=ft.colors.WHITE)
             self.error_message_dlg.open = True
             self.update()
     
@@ -157,7 +157,7 @@ class App(ft.UserControl):
                 status = self.operation_dialog.backup(self.display_folderpath.value, pwd, service, backup_exists)
 
                 if status is False:
-                    self.error_message_dlg.content = ft.Text("Backup failed")
+                    self.error_message_dlg.content = ft.Text("Backup failed", color=ft.colors.WHITE)
                     self.error_message_dlg.open = True
 
                 self.update()
@@ -168,7 +168,7 @@ class App(ft.UserControl):
                 status = self.operation_dialog.restore(self.display_folderpath.value, pwd, service, lockdown_client.identifier)
 
                 if status is False:
-                    self.error_message_dlg.content = ft.Text("Restore failed: Enter correct password for the encrypted backup")
+                    self.error_message_dlg.content = ft.Text("Restore failed: Enter correct password for the encrypted backup", color=ft.colors.WHITE)
                     self.error_message_dlg.open = True
 
                 self.update() 
