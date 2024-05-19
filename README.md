@@ -9,18 +9,30 @@ Under the hood, the program makes use of [pymobiledevice3](https://github.com/do
 
 ![Screenshot from 2024-05-12 15-15-12](https://github.com/redromnon/iBackep/assets/74495920/0635c6b1-175e-4ac4-b7d1-162310f851e8)
 
-### Features
+## Features
 - Perform unencrypted backups
 - Restore from both unencrypted and encrypted backups
 
 *Tested on iPhone SE 2 and iPhone 5S*
 
 
-### Download
+## Pre-requisite
+You will need the `zenity` program for the program to work.
+
+Ubuntu/Debian users can install it using:
+```
+sudo apt-get install zenity
+```
+Fedora users:
+```
+sudo yum install zenity
+```
+
+## Download
 Head over to [Releases](https://github.com/redromnon/iBackep/releases) and download the latest version's executable.
 
 
-### Roadmap
+## Roadmap
 - Create encrypted backups
 - Better UI
 - Display information about previous backups like backup history
