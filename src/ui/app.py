@@ -21,11 +21,11 @@ class App(ft.UserControl):
 
 
         #Snackbar (bottom) dialog
-        self.no_device_dialog = ft.SnackBar(content=ft.Text("No device found"))
+        self.no_device_dialog = ft.SnackBar(content=ft.Text("No device found"), bgcolor=ft.colors.RED_500)
 
         self.no_folder_selected_dlg = ft.SnackBar(content=ft.Text("Please select a destination folder using the folder icon"))
 
-        self.error_message_dlg = ft.SnackBar(content=None)
+        self.error_message_dlg = ft.SnackBar(content=None, bgcolor=ft.colors.RED_500)
 
         #Folder        
         self.display_folderpath = ft.TextField(
@@ -90,15 +90,28 @@ class App(ft.UserControl):
     #Handle folder picker and display folder path
     def select_folder(self, e):
         
-        res = subprocess.run(
-            ['zenity --file-selection --title="Choose backup folder" --directory'],
+        check = subprocess.run(
+            ['zenity --version'],
             shell=True,
             #stdout=subprocess.PIPE,
             capture_output=True
         )
-        self.display_folderpath.value = res.stdout.decode().strip()
 
-        self.update()
+        if len(check.stderr.decode()) == 0:
+
+            res = subprocess.run(
+                ['zenity --file-selection --title="Choose backup folder" --directory'],
+                shell=True,
+                #stdout=subprocess.PIPE,
+                capture_output=True
+            )
+            self.display_folderpath.value = res.stdout.decode().strip()
+
+            self.update()
+        else:
+            self.error_message_dlg.content = ft.Text("Looks like Zenity is not installed")
+            self.error_message_dlg.open = True
+            self.update()
     
 
     #Call backup/restore/cancel actions 
@@ -162,7 +175,6 @@ class App(ft.UserControl):
 
             lockdown_client = None
             service = None 
-            backup_service = None
             pwd = None
         finally:
             #Renable buttons
