@@ -97,7 +97,7 @@ class App(ft.UserControl):
             capture_output=True
         )
 
-        if len(check.stderr.decode()) == 0:
+        if check.returncode == 0:
 
             res = subprocess.run(
                 ['zenity --file-selection --title="Choose backup folder" --directory'],
