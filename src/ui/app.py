@@ -3,6 +3,7 @@ from ui.about import About
 from ui.encrypt import Encrypt
 from ui.operations import Operation
 import pymobiledevice3.lockdown, pymobiledevice3.exceptions, pymobiledevice3.services.mobilebackup2
+import subprocess
 
 class App(ft.UserControl): 
     
@@ -20,15 +21,13 @@ class App(ft.UserControl):
 
 
         #Snackbar (bottom) dialog
-        self.no_device_dialog = ft.SnackBar(content=ft.Text("No device found"))
+        self.no_device_dialog = ft.SnackBar(content=ft.Text("No device found", color=ft.colors.WHITE), bgcolor=ft.colors.RED_500)
 
         self.no_folder_selected_dlg = ft.SnackBar(content=ft.Text("Please select a destination folder using the folder icon"))
 
-        self.error_message_dlg = ft.SnackBar(content=None)
+        self.error_message_dlg = ft.SnackBar(content=None, bgcolor=ft.colors.RED_500)
 
-        #Folder
-        self.folder_picker = ft.FilePicker(on_result=self.folder_dialog_result)
-        
+        #Folder        
         self.display_folderpath = ft.TextField(
             hint_text="Select folder icon", width=400, read_only=True, border="none", 
             filled=True, max_lines=3, color=ft.colors.WHITE70
@@ -36,7 +35,7 @@ class App(ft.UserControl):
 
         self.select_folder_icon = ft.IconButton(
             icon=ft.icons.FOLDER_ROUNDED, tooltip="Select folder location", 
-            icon_size=36, on_click=lambda e: self.folder_picker.get_directory_path(),
+            icon_size=36, on_click=self.select_folder,
             icon_color=ft.colors.WHITE70
         )
 
@@ -61,7 +60,7 @@ class App(ft.UserControl):
         
         #UI component groups
         self.folder_container = ft.Row(
-            [self.display_folderpath, self.select_folder_icon, self.folder_picker], 
+            [self.display_folderpath, self.select_folder_icon], 
             spacing=10, alignment="center"
         )
         
@@ -88,12 +87,31 @@ class App(ft.UserControl):
 
 
 
-    #Display folder path in textfield and enable options
-    def folder_dialog_result(self, e: ft.FilePickerResultEvent):
+    #Handle folder picker and display folder path
+    def select_folder(self, e):
         
-        self.display_folderpath.value = e.path
+        check = subprocess.run(
+            ['zenity --version'],
+            shell=True,
+            #stdout=subprocess.PIPE,
+            capture_output=True
+        )
 
-        self.update()
+        if len(check.stderr.decode()) == 0:
+
+            res = subprocess.run(
+                ['zenity --file-selection --title="Choose backup folder" --directory'],
+                shell=True,
+                #stdout=subprocess.PIPE,
+                capture_output=True
+            )
+            self.display_folderpath.value = res.stdout.decode().strip()
+
+            self.update()
+        else:
+            self.error_message_dlg.content = ft.Text("Looks like Zenity is not installed", color=ft.colors.WHITE)
+            self.error_message_dlg.open = True
+            self.update()
     
 
     #Call backup/restore/cancel actions 
@@ -118,7 +136,7 @@ class App(ft.UserControl):
             lockdown_client = pymobiledevice3.lockdown.create_using_usbmux()
             print(lockdown_client.display_name)
         #handle exception where device is not available
-        except pymobiledevice3.exceptions.ConnectionFailedToUsbmuxdError:
+        except:
             print(traceback.format_exc())
             self.no_device_dialog.open = True
             self.update()
@@ -139,7 +157,7 @@ class App(ft.UserControl):
                 status = self.operation_dialog.backup(self.display_folderpath.value, pwd, service, backup_exists)
 
                 if status is False:
-                    self.error_message_dlg.content = ft.Text("Backup failed")
+                    self.error_message_dlg.content = ft.Text("Backup failed", color=ft.colors.WHITE)
                     self.error_message_dlg.open = True
 
                 self.update()
@@ -150,17 +168,16 @@ class App(ft.UserControl):
                 status = self.operation_dialog.restore(self.display_folderpath.value, pwd, service, lockdown_client.identifier)
 
                 if status is False:
-                    self.error_message_dlg.content = ft.Text("Restore failed: Enter correct password for the encrypted backup")
+                    self.error_message_dlg.content = ft.Text("Restore failed: Enter correct password for the encrypted backup", color=ft.colors.WHITE)
                     self.error_message_dlg.open = True
 
                 self.update() 
 
             lockdown_client = None
             service = None 
-            backup_service = None
             pwd = None
-        
-        #Renable buttons
-        self.backupbtn.disabled = False
-        self.restorebtn.disabled = False
-        self.update()
+        finally:
+            #Renable buttons
+            self.backupbtn.disabled = False
+            self.restorebtn.disabled = False
+            self.update()
