@@ -3,6 +3,7 @@ from ui.about import About
 from ui.encrypt import Encrypt
 from ui.operations import Operation
 import pymobiledevice3.lockdown, pymobiledevice3.exceptions, pymobiledevice3.services.mobilebackup2
+import subprocess
 
 class App(ft.UserControl): 
     
@@ -26,9 +27,7 @@ class App(ft.UserControl):
 
         self.error_message_dlg = ft.SnackBar(content=None)
 
-        #Folder
-        self.folder_picker = ft.FilePicker(on_result=self.folder_dialog_result)
-        
+        #Folder        
         self.display_folderpath = ft.TextField(
             hint_text="Select folder icon", width=400, read_only=True, border="none", 
             filled=True, max_lines=3, color=ft.colors.WHITE70
@@ -36,7 +35,7 @@ class App(ft.UserControl):
 
         self.select_folder_icon = ft.IconButton(
             icon=ft.icons.FOLDER_ROUNDED, tooltip="Select folder location", 
-            icon_size=36, on_click=lambda e: self.folder_picker.get_directory_path(),
+            icon_size=36, on_click=self.select_folder,
             icon_color=ft.colors.WHITE70
         )
 
@@ -61,7 +60,7 @@ class App(ft.UserControl):
         
         #UI component groups
         self.folder_container = ft.Row(
-            [self.display_folderpath, self.select_folder_icon, self.folder_picker], 
+            [self.display_folderpath, self.select_folder_icon], 
             spacing=10, alignment="center"
         )
         
@@ -88,10 +87,16 @@ class App(ft.UserControl):
 
 
 
-    #Display folder path in textfield and enable options
-    def folder_dialog_result(self, e: ft.FilePickerResultEvent):
+    #Handle folder picker and display folder path
+    def select_folder(self, e):
         
-        self.display_folderpath.value = e.path
+        res = subprocess.run(
+            ['zenity --file-selection --title="Choose backup folder" --directory'],
+            shell=True,
+            #stdout=subprocess.PIPE,
+            capture_output=True
+        )
+        self.display_folderpath.value = res.stdout.decode().strip()
 
         self.update()
     
