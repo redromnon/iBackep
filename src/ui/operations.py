@@ -1,4 +1,5 @@
 import flet as ft, time, traceback, os
+from pymobiledevice3.services.mobilebackup2 import Mobilebackup2Service
 
 class Operation(ft.UserControl):
     
@@ -28,26 +29,22 @@ class Operation(ft.UserControl):
         self.tracker.value = self.tracker.value + ' Finished'
         self.update()
 
-    def check_if_backup_exists(self, folder):
+    def check_if_backup_exists(self, folder_path, service):
         '''
-        Temporary (Need to find a better solution):
-        Checks if the selected folder is a new backup or already contains a previous backup.
-
-        pymobiledevice's info function has some issue, thus this func exists as an alternative.
+        Checks if backup already exists in selected folder.
         '''
-        files = os.listdir(folder)
+        
+        try:
+            result = service.info(folder_path)
+        except: #No backup exists
+            print(traceback.format_exc())
+            return False
+        else: #Info is returned so backup exists
+            print(result)
+            return True
+        
 
-        if len(files) == 0:
-            return False #Fresh backup folder
-        else:
-            get_backup_files = files[0]
-            if 'Info.plist' in get_backup_files:
-                return True# A backup exists
-            else:
-                return False
-
-
-    def backup(self, folder, pwd, service, is_first_backup):
+    def backup(self, folder, pwd, lockdown, backup_exists):
 
         self.modal_dialog.open = True
         self.tracker.value = "Backing Up"
@@ -55,11 +52,12 @@ class Operation(ft.UserControl):
 
         #run process
         try:
-            service.backup(
-                backup_directory=folder,
-                progress_callback=self.progressbar,
-                full=is_first_backup
-            )
+            with Mobilebackup2Service(lockdown) as service:
+                service.backup(
+                    backup_directory=folder,
+                    progress_callback=self.progressbar,
+                    full=False if backup_exists else True
+                )
         except:
             print(traceback.format_exc())
             self.close_dialog()
@@ -68,7 +66,7 @@ class Operation(ft.UserControl):
             self._after_operations()
             return True
     
-    def restore(self, folder, pwd, service, identifier):
+    def restore(self, folder, pwd, lockdown, identifier):
 
         self.modal_dialog.open = True
         self.tracker.value = "Backing Up"
@@ -76,12 +74,13 @@ class Operation(ft.UserControl):
 
         #run process
         try:
-            service.restore(
-                backup_directory=folder,
-                progress_callback=self.progressbar,
-                password=pwd,
-                source=identifier
-            )
+            with Mobilebackup2Service(lockdown) as service:
+                service.restore(
+                    backup_directory=folder,
+                    progress_callback=self.progressbar,
+                    password=pwd,
+                    source=identifier
+                )
         except:
             print(traceback.format_exc())
             self.close_dialog()
