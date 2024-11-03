@@ -148,13 +148,13 @@ class App(ft.UserControl):
             #Check if password is given
             pwd = self.pwd_encrypt.get_pwd()
 
-            backup_exists = self.operation_dialog.check_if_backup_exists(self.display_folderpath.value)
-            print('New backup folder?:', backup_exists)
+            backup_exists = self.operation_dialog.check_if_backup_exists(self.display_folderpath.value, service)
+            print('Backup already exists?:', backup_exists)
 
             if backup:
                 #Run backup operation
                 print("Backup running...")
-                status = self.operation_dialog.backup(self.display_folderpath.value, pwd, service, backup_exists)
+                status = self.operation_dialog.backup(self.display_folderpath.value, pwd, lockdown_client, backup_exists)
 
                 if status is False:
                     self.error_message_dlg.content = ft.Text("Backup failed", color=ft.colors.WHITE)
@@ -165,7 +165,7 @@ class App(ft.UserControl):
             if restore:
                 #Run restore operation
                 print("Restore running...")
-                status = self.operation_dialog.restore(self.display_folderpath.value, pwd, service, lockdown_client.identifier)
+                status = self.operation_dialog.restore(self.display_folderpath.value, pwd, lockdown_client, lockdown_client.identifier)
 
                 if status is False:
                     self.error_message_dlg.content = ft.Text("Restore failed: Enter correct password for the encrypted backup", color=ft.colors.WHITE)
