@@ -2,5 +2,4 @@ __pycache__
 /src/test.py
 /src/build
 /src/dist
-/src/*.spec
 /venv
