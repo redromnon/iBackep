@@ -1,46 +1,58 @@
 import flet as ft
 
-class Encrypt(ft.UserControl):
-    
-    def build(self):
 
-        self.password_field = ft.TextField(
-            password=True, can_reveal_password=True, 
-            filled=False, border=ft.InputBorder.UNDERLINE,
-            hint_text="Encryption password"
-        )
+@ft.component
+def EncryptField(password: str, on_password_change, on_change_password_request):
+    help_open, set_help_open = ft.use_state(False)
 
-        self.info_button = ft.IconButton(
-            icon=ft.icons.INFO_ROUNDED, icon_size=28, on_click=self.toggle_help, tooltip="Show encryption help",
-            icon_color=ft.colors.WHITE70
-        )
+    encrypt_help = ft.AlertDialog(
+        title=ft.Text("Encryption Help", text_align=ft.TextAlign.CENTER),
+        content=ft.Column(
+            [
+                ft.Text(
+                    "You are required to enter the correct password if the backup is encrypted.",
+                    text_align=ft.TextAlign.CENTER,
+                    theme_style=ft.TextThemeStyle.BODY_SMALL,
+                    size=13,
+                ),
+            ],
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            height=50,
+            width=200,
+        ),
+        actions=[ft.TextButton("Ok", on_click=lambda e: set_help_open(False))],
+        modal=True,
+        actions_alignment=ft.MainAxisAlignment.CENTER,
+    )
+    ft.use_dialog(encrypt_help if help_open else None)
 
-        self.encrypt_help = ft.AlertDialog(
-            title=ft.Text("Encryption Help", text_align="center"),
-            content=ft.Column(
-                [
-                    ft.Text("You are required to enter the correct password if the backup is encrypted.",
-                            text_align="center", theme_style="bodySmall", size=13),
-                ],
-                horizontal_alignment="center", height=50, width=200
+    return ft.Row(
+        [
+            ft.TextField(
+                password=True,
+                can_reveal_password=True,
+                value=password,
+                filled=False,
+                border=ft.UnderlineInputBorder(),
+                hint_text="Encryption password",
+                width=300,
+                on_change=lambda e: on_password_change(e.data),
             ),
-            actions=[ft.TextButton("Ok", on_click=self.toggle_help)], modal=True,
-            actions_alignment=ft.MainAxisAlignment.CENTER 
-        )
-
-        return ft.Row([self.password_field, self.info_button, self.encrypt_help], spacing=10, alignment="center")
-
-
-    def get_pwd(self):
-                
-        return self.password_field.value
-
-
-    def toggle_help(self, e):
-
-        if self.encrypt_help.open:
-            self.encrypt_help.open=False
-        else:
-            self.encrypt_help.open=True
-        
-        self.update()
+            ft.IconButton(
+                icon=ft.Icons.INFO_ROUNDED,
+                icon_size=28,
+                tooltip="Show encryption help",
+                icon_color=ft.Colors.WHITE_70,
+                on_click=lambda e: set_help_open(True),
+            ),
+            ft.IconButton(
+                icon=ft.Icons.LOCK_ROUNDED,
+                icon_size=28,
+                tooltip="Change encryption password",
+                icon_color=ft.Colors.WHITE_70,
+                on_click=lambda e: on_change_password_request(),
+            ),
+        ],
+        spacing=10,
+        alignment=ft.MainAxisAlignment.CENTER,
+    )

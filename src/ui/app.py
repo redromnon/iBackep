@@ -1,183 +1,251 @@
-import flet as ft, traceback
+import logging
+
+import flet as ft
+from pymobiledevice3.exceptions import (
+    ConnectionFailedToUsbmuxdError,
+    DeviceNotFoundError,
+    InvalidBackupPasswordError,
+    NoDeviceConnectedError,
+    PasswordRequiredError,
+)
+
+import device
 from ui.about import About
-from ui.encrypt import Encrypt
-from ui.operations import Operation
-import pymobiledevice3.lockdown, pymobiledevice3.exceptions, pymobiledevice3.services.mobilebackup2
-import subprocess
+from ui.encrypt import EncryptField
+from ui.operations import OperationDialog
 
-class App(ft.UserControl): 
-    
-    #Must func
-    def build(self):
-    
-        #Import about dialog
-        self.about_button = About()
+logger = logging.getLogger(__name__)
 
-        #Import encryption password container row
-        self.pwd_encrypt = Encrypt()
-
-        #Process dialog for Action
-        self.operation_dialog = Operation()
+NO_DEVICE_ERRORS = (ConnectionFailedToUsbmuxdError, DeviceNotFoundError, NoDeviceConnectedError)
 
 
-        #Snackbar (bottom) dialog
-        self.no_device_dialog = ft.SnackBar(content=ft.Text("No device found", color=ft.colors.WHITE), bgcolor=ft.colors.RED_500)
+@ft.component
+def App(version: str):
+    page = ft.context.page
 
-        self.no_folder_selected_dlg = ft.SnackBar(content=ft.Text("Please select a destination folder using the folder icon"))
+    folder_path, set_folder_path = ft.use_state("")
+    password, set_password = ft.use_state("")
+    busy, set_busy = ft.use_state(False)
+    status, set_status = ft.use_state("")
+    progress, set_progress = ft.use_state(None)
+    finished, set_finished = ft.use_state(False)
+    dialog_open, set_dialog_open = ft.use_state(False)
+    pwd_dialog_open, set_pwd_dialog_open = ft.use_state(False)
+    old_pwd, set_old_pwd = ft.use_state("")
+    new_pwd, set_new_pwd = ft.use_state("")
 
-        self.error_message_dlg = ft.SnackBar(content=None, bgcolor=ft.colors.RED_500)
+    picker = ft.use_memo(ft.FilePicker, [])
 
-        #Folder        
-        self.display_folderpath = ft.TextField(
-            hint_text="Select folder icon", width=400, read_only=True, border="none", 
-            filled=True, max_lines=3, color=ft.colors.WHITE70
+    def on_progress(pct):
+        set_progress(round(pct) / 100)
+
+    def show_snack(message: str, bgcolor=None):
+        page.show_dialog(
+            ft.SnackBar(content=ft.Text(message, color=ft.Colors.WHITE), bgcolor=bgcolor)
         )
 
-        self.select_folder_icon = ft.IconButton(
-            icon=ft.icons.FOLDER_ROUNDED, tooltip="Select folder location", 
-            icon_size=36, on_click=self.select_folder,
-            icon_color=ft.colors.WHITE70
-        )
+    def close_operation(e=None):
+        set_dialog_open(False)
+        set_finished(False)
+        set_progress(None)
 
-        
-        #Options
-        self.backupbtn = ft.ElevatedButton(
-            "Backup", icon=ft.icons.SETTINGS_BACKUP_RESTORE_ROUNDED, 
-            on_click=lambda e: self.call_operations(backup=True),
-            disabled=False, style=ft.ButtonStyle(shape=ft.StadiumBorder(), padding=15),
-            icon_color=ft.colors.BLACK87, color=ft.colors.BLACK87, bgcolor=ft.colors.WHITE
-        )
+    async def select_folder(e):
+        path = await picker.get_directory_path()
+        if path:
+            set_folder_path(path)
 
-        self.restorebtn = ft.ElevatedButton(
-            "Restore", 
-            icon=ft.icons.RESTORE_ROUNDED, 
-            on_click=lambda e: self.call_operations(restore=True),
-            disabled=False, style=ft.ButtonStyle(shape=ft.StadiumBorder(), padding=15),
-            icon_color=ft.colors.BLACK87, color=ft.colors.BLACK87, bgcolor=ft.colors.WHITE
-        )
-
-
-        
-        #UI component groups
-        self.folder_container = ft.Row(
-            [self.display_folderpath, self.select_folder_icon], 
-            spacing=10, alignment="center"
-        )
-        
-        self.options_container = ft.Row(
-            [self.backupbtn, self.restorebtn], spacing=20, alignment="center")
-        
-        
-        #Main Container
-        self.main_container = ft.Stack(
-            [
-                #Alerts and dialogs go here
-                self.operation_dialog, self.no_device_dialog, self.no_folder_selected_dlg, self.error_message_dlg,
-
-                #Others
-                ft.Column(
-                    [self.folder_container, self.pwd_encrypt, self.options_container, self.about_button], 
-                    spacing=30, horizontal_alignment="center"
-                )
-            ]
-        )
-
-        
-        return self.main_container
-
-
-
-    #Handle folder picker and display folder path
-    def select_folder(self, e):
-        
-        check = subprocess.run(
-            ['zenity --version'],
-            shell=True,
-            #stdout=subprocess.PIPE,
-            capture_output=True
-        )
-
-        if check.returncode == 0:
-
-            res = subprocess.run(
-                ['zenity --file-selection --title="Choose backup folder" --directory'],
-                shell=True,
-                #stdout=subprocess.PIPE,
-                capture_output=True
-            )
-            self.display_folderpath.value = res.stdout.decode().strip()
-
-            self.update()
-        else:
-            self.error_message_dlg.content = ft.Text("Looks like Zenity is not installed", color=ft.colors.WHITE)
-            self.error_message_dlg.open = True
-            self.update()
-    
-
-    #Call backup/restore/cancel actions 
-    def call_operations(self, backup=False, restore=False):
-
-        #check if folder path is specified and run operation
-        if(len(self.display_folderpath.value) == 0):
-            
-            self.no_folder_selected_dlg.open = True
-            self.update()
-
-            return
-        
-        #Disable buttons
-        self.backupbtn.disabled = True
-        self.restorebtn.disabled = True
-        self.update()
-        
-        #to connect to device via USB and perform operations
+    async def run_with_dialog(status: str, fail_noun: str, op):
+        set_busy(True)
+        set_status(status)
+        set_progress(None)
+        set_finished(False)
+        set_dialog_open(True)
         try:
-            #Create lockdown client
-            lockdown_client = pymobiledevice3.lockdown.create_using_usbmux()
-            print(lockdown_client.display_name)
-        #handle exception where device is not available
-        except:
-            print(traceback.format_exc())
-            self.no_device_dialog.open = True
-            self.update()
-        #run operations if lockdown client creation is successful
-        else:
-            #Create backup/restore service
-            service = pymobiledevice3.services.mobilebackup2.Mobilebackup2Service(lockdown=lockdown_client)
-
-            #Check if password is given
-            pwd = self.pwd_encrypt.get_pwd()
-
-            backup_exists = self.operation_dialog.check_if_backup_exists(self.display_folderpath.value, service)
-            print('Backup already exists?:', backup_exists)
-
-            if backup:
-                #Run backup operation
-                print("Backup running...")
-                status = self.operation_dialog.backup(self.display_folderpath.value, pwd, lockdown_client, backup_exists)
-
-                if status is False:
-                    self.error_message_dlg.content = ft.Text("Backup failed", color=ft.colors.WHITE)
-                    self.error_message_dlg.open = True
-
-                self.update()
-
-            if restore:
-                #Run restore operation
-                print("Restore running...")
-                status = self.operation_dialog.restore(self.display_folderpath.value, pwd, lockdown_client, lockdown_client.identifier)
-
-                if status is False:
-                    self.error_message_dlg.content = ft.Text("Restore failed: Enter correct password for the encrypted backup", color=ft.colors.WHITE)
-                    self.error_message_dlg.open = True
-
-                self.update() 
-
-            lockdown_client = None
-            service = None 
-            pwd = None
+            await op()
+            set_status(status + " — Finished")
+            set_finished(True)
+        except NO_DEVICE_ERRORS:
+            logger.exception("No device connected")
+            close_operation()
+            show_snack("No device found", ft.Colors.RED_500)
+        except InvalidBackupPasswordError:
+            logger.exception("Wrong backup password")
+            close_operation()
+            show_snack(
+                f"{fail_noun} failed: Enter correct password for the encrypted backup",
+                ft.Colors.RED_500,
+            )
+        except PasswordRequiredError:
+            logger.exception("Device is passcode protected")
+            close_operation()
+            show_snack(
+                "Device is passcode protected - unlock it and try again",
+                ft.Colors.RED_500,
+            )
+        except Exception:
+            logger.exception("%s failed", fail_noun)
+            close_operation()
+            show_snack(f"{fail_noun} failed", ft.Colors.RED_500)
         finally:
-            #Renable buttons
-            self.backupbtn.disabled = False
-            self.restorebtn.disabled = False
-            self.update()
+            set_busy(False)
+
+    async def perform(mode: str):
+        if len(folder_path) == 0:
+            show_snack("Please select a destination folder using the folder icon")
+            return
+
+        if mode == "backup":
+            await run_with_dialog(
+                "Backing Up", "Backup", lambda: device.run_backup(folder_path, on_progress)
+            )
+        else:
+            await run_with_dialog(
+                "Restoring",
+                "Restore",
+                lambda: device.run_restore(folder_path, password, on_progress),
+            )
+
+    def open_password_dialog(e=None):
+        set_old_pwd(password)
+        set_new_pwd("")
+        set_pwd_dialog_open(True)
+
+    def close_password_dialog(e=None):
+        set_pwd_dialog_open(False)
+
+    async def apply_password_change(e=None):
+        set_pwd_dialog_open(False)
+        await run_with_dialog(
+            "Changing Password",
+            "Password change",
+            lambda: device.run_change_password(old_pwd, new_pwd),
+        )
+
+    async def start_backup(e):
+        await perform("backup")
+
+    async def start_restore(e):
+        await perform("restore")
+
+    change_password_dialog = ft.AlertDialog(
+        modal=True,
+        title=ft.Text("Change Password", text_align=ft.TextAlign.CENTER),
+        content=ft.Column(
+            [
+                ft.TextField(
+                    password=True,
+                    can_reveal_password=True,
+                    label="Old password",
+                    value=old_pwd,
+                    width=300,
+                    on_change=lambda e: set_old_pwd(e.data),
+                ),
+                ft.TextField(
+                    password=True,
+                    can_reveal_password=True,
+                    label="New password",
+                    value=new_pwd,
+                    width=300,
+                    on_change=lambda e: set_new_pwd(e.data),
+                ),
+                ft.Text(
+                    "Fill both fields to change the password.\n"
+                    "Leave Old empty to enable encryption, or New empty to disable it.",
+                    size=12,
+                    color=ft.Colors.WHITE_70,
+                    text_align=ft.TextAlign.CENTER,
+                ),
+            ],
+            tight=True,
+            spacing=15,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+        ),
+        actions=[
+            ft.TextButton("Cancel", on_click=close_password_dialog, disabled=busy),
+            ft.TextButton(
+                "Apply",
+                on_click=apply_password_change,
+                disabled=busy or (len(old_pwd) == 0 and len(new_pwd) == 0),
+            ),
+        ],
+        actions_alignment=ft.MainAxisAlignment.CENTER,
+    )
+    ft.use_dialog(change_password_dialog if pwd_dialog_open else None)
+
+    backup_button = ft.FilledButton(
+        content="Backup",
+        icon=ft.Icons.SETTINGS_BACKUP_RESTORE_ROUNDED,
+        on_click=start_backup,
+        disabled=busy,
+        color=ft.Colors.BLACK_87,
+        bgcolor=ft.Colors.WHITE,
+        icon_color=ft.Colors.BLACK_87,
+        style=ft.ButtonStyle(shape=ft.StadiumBorder(), padding=15),
+    )
+
+    restore_button = ft.FilledButton(
+        content="Restore",
+        icon=ft.Icons.RESTORE_ROUNDED,
+        on_click=start_restore,
+        disabled=busy,
+        color=ft.Colors.BLACK_87,
+        bgcolor=ft.Colors.WHITE,
+        icon_color=ft.Colors.BLACK_87,
+        style=ft.ButtonStyle(shape=ft.StadiumBorder(), padding=15),
+    )
+
+    folder_display = ft.TextField(
+        hint_text="Select folder icon",
+        width=400,
+        read_only=True,
+        border=ft.NoInputBorder(),
+        filled=True,
+        max_lines=3,
+        color=ft.Colors.WHITE_70,
+        value=folder_path,
+    )
+
+    folder_icon = ft.IconButton(
+        icon=ft.Icons.FOLDER_ROUNDED,
+        tooltip="Select folder location",
+        icon_size=36,
+        on_click=select_folder,
+        icon_color=ft.Colors.WHITE_70,
+    )
+
+    return ft.Column(
+        [
+            ft.Row(
+                [
+                    ft.Text("iBackep", size=56, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
+                    ft.Text(version, size=20, weight=ft.FontWeight.NORMAL, color=ft.Colors.WHITE),
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+            ),
+            ft.Row(
+                [folder_display, folder_icon],
+                spacing=10,
+                alignment=ft.MainAxisAlignment.CENTER,
+            ),
+            EncryptField(
+                password,
+                on_password_change=set_password,
+                on_change_password_request=open_password_dialog,
+            ),
+            ft.Row(
+                [backup_button, restore_button],
+                spacing=20,
+                alignment=ft.MainAxisAlignment.CENTER,
+            ),
+            About(version),
+            OperationDialog(
+                visible=dialog_open,
+                status=status,
+                progress=progress,
+                finished=finished,
+                on_close=close_operation,
+            ),
+        ],
+        spacing=30,
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+    )

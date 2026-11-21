@@ -12,20 +12,21 @@ Under the hood, the program makes use of [pymobiledevice3](https://github.com/do
 ## Features
 - Perform unencrypted backups
 - Restore from both unencrypted and encrypted backups
+- Change, enable or disable the backup encryption password
 
 *Tested on iPhone SE 2 and iPhone 5S*
 
 
 ## Pre-requisite
-You will need the `zenity` program for the program to work.
+Python 3.10 or newer along with the packages listed in `requirements.txt`:
+```
+pip install -r requirements.txt
+```
 
-Ubuntu/Debian users can install it using:
+## Run from source
 ```
-sudo apt-get install zenity
-```
-Fedora users:
-```
-sudo yum install zenity
+cd src
+python main.py
 ```
 
 ## Download

@@ -1,39 +1,43 @@
 import flet as ft
 import webbrowser as wb
 
-version = None
-def get_version(v):
-    global version
-    version = v
-
-class About(ft.UserControl):
-
-    def build(self):
-
-        global version
-    
-        self.desc = ( version + "\n\niBackep is a lightweight GUI backup manager for Apple iPhone and iPad for Linux\n" + 
-            "(GPL-3.0 License)\n\nMade with ❤️ by redromnon"
-        )
-        
-        
-        self.about_icon = ft.IconButton(icon=ft.icons.QUESTION_MARK_ROUNDED, icon_size=18, 
-            tooltip="About", on_click=self.display_about, icon_color=ft.colors.WHITE70
-        )
-
-        self.about_modal = ft.AlertDialog(title=ft.Text("About", text_align="center"), 
-                            content=ft.Column(
-                                [
-                                    ft.Text(self.desc, text_align="center", theme_style="bodySmall", size=14),
-                                ], horizontal_alignment="center", height=120,  
-                            ),
-                            actions_alignment="center",
-                            actions=[ft.TextButton("Website", on_click=lambda e: wb.open("https://github.com/redromnon/iBackep")),]
-                        )
-
-        return ft.Stack([self.about_modal, self.about_icon])
+WEBSITE_URL = "https://github.com/redromnon/iBackep"
 
 
-    def display_about(self,e):
-        self.about_modal.open = True
-        self.update()
+@ft.component
+def About(version: str):
+    open, set_open = ft.use_state(False)
+
+    description = (
+        f"{version}\n\n"
+        "iBackep is a lightweight GUI backup manager for Apple iPhone and iPad for Linux\n"
+        "(GPL-3.0 License)\n\n"
+        "Made with ❤️ by redromnon"
+    )
+
+    about_modal = ft.AlertDialog(
+        title=ft.Text("About", text_align=ft.TextAlign.CENTER),
+        content=ft.Column(
+            [
+                ft.Text(
+                    description,
+                    text_align=ft.TextAlign.CENTER,
+                    theme_style=ft.TextThemeStyle.BODY_SMALL,
+                    size=14,
+                ),
+            ],
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            height=120,
+        ),
+        actions_alignment=ft.MainAxisAlignment.CENTER,
+        actions=[ft.TextButton("Website", on_click=lambda e: wb.open(WEBSITE_URL))],
+    )
+    ft.use_dialog(about_modal if open else None)
+
+    return ft.IconButton(
+        icon=ft.Icons.QUESTION_MARK_ROUNDED,
+        icon_size=18,
+        tooltip="About",
+        on_click=lambda e: set_open(True),
+        icon_color=ft.Colors.WHITE_70,
+    )

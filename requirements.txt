@@ -1,0 +1,2 @@
+flet>=1.1,<2
+pymobiledevice3>=11.61,<12
